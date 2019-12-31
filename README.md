@@ -24,10 +24,29 @@ Plots are specified either via complex command line arguments with the
 *-p* switch, or via easier-to-read-and-write YAML configuration files
 (see the example below).
 
+## Reading from logs
+
+lime-plotter.py can be run with a *-L* switch to load CSV files from a
+file, multiple files, or a directory.  EG calling it as:
+
+    lime-plotter.py -L DIR
+	
+Will load all the files it can from the *DIR* directory.  Table names
+will be assumed from the CSV file names.
+
+## Reading from FRC network tables
+
+To read from a network table, use the *-N* switch to specify the
+network address to connect to, and optionally a *-T* switch to specify
+a default table to read from.
+
+    lime-plotter.py -N 10.16.78.1 -t nettable
 
 # Example configuration
 
 The following are YAML file configuration examples.
+
+## Example single graph
 
 The following example configuration file specifies a single plot
 called *position* and plots two overlayed graphs from the
@@ -59,3 +78,24 @@ Might produce the following graph:
 
 ![X/Y Test Graph](./images/xytest.png)
 
+## Example multiple graphs
+
+To display multiple plots, configuration files can contain multiple
+named entries:
+
+    plots:
+      velocity:
+        - y: linear_velocity
+        - y: angular_velocity
+          title: Velocity
+      elevator:
+        - y: elevator_height
+          title: elevator Height
+
+And run with
+
+    lime-plotter.py -L log -y multiple.yml -o multiple.yng
+	
+Will produce a graph similar to the following:
+
+![Multiple Graphs](./images/multiple.png)
