@@ -99,3 +99,13 @@ And run with
 Will produce a graph similar to the following:
 
 ![Multiple Graphs](./images/multiple.png)
+
+# Animation
+
+When plotting from *networktables* or with the *-a* switch applied,
+a window will open that will animate the data flowing over time (live
+in the case of *networktables*).  You can use the *-f* switch to
+change the frame rate (when graphing CSV files, it'll draw faster with
+higher values -- the default is 20; when drawing from network tables
+it'll use this value as the polling frequency, and should be set to
+the same number of milliseconds that the robot is using to update tables).

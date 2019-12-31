@@ -1,79 +1,8 @@
 #!/usr/bin/python3
 
-"""log-plotter.py: plot CSV files based on specified columns.
+"""log-plotter.py: plot CSV and networktable data based on specified columns.
 
-log-plotty.py will take arbitrary CSV files with a column heading at the
-top and plot the results in one or more layered graphs.
-
-Specifying variables to plot:
-
-  The -p option is used to select column names, with arguments of x,y
-  pairs.  If y isn't specified, then x is assumed to be 'timestamp'.
-  Thus:
-
-      log-plotter.py -p estimated_x_position,estimated_y_position -- FILES
-
-  Will read in FILES, looking for columns estimated_x_position and
-  estimated_y_position to plot.
-
-  If a '/' is read as one of the arguments to -p, it'll create a new
-  graph underneath the previous, allowing for arbitrary graph stacking.
-  Thus:
-
-      log-plotter.py -p elevator_height / button1 button2 -- FILES
-
-  Will create two (time-series) graphs with the elevator_height on
-  the top graph and the button1 and button2 columns on the bottom.
-
-Markers:
-
-  Markers can be added to all the graphs by clicking on a time-series
-  graph.  This will mark all the graphs at that time, including x,y
-  graphs.  This is useful if you want to see where the elevator
-  started going up in an x,y plane based on its height graph from a
-  time-series graph.
-
-  You can also specify automatically generated markers with the -m
-  switch, which takes arguments of the form
-  column,threshold,markertype.  Threshold defaults to 0.5, and
-  markertype defaults to 'x' (see matplotlib markers for further
-  details).
-
-  Thus:
-
-      log-plotter.py -p elevator_height / button1 button2 \
-      -m button1 button2,0.5,o -- FILES
-
-  will add button1 (with an x) and button2 (with a dot) press marks to
-  the graph of the elevator height (and to the button graphs too).
-
-  -m elevator_height,.75 will add an x every time the elevator raises
-   above .75 meters.
-
-Animation:
-
-  If you want to see the data animated as it draws, use the -a switch.
-  If the animation is running too quickly, the -i switch can specify
-  an interval to wait between animation frame updates.  By default, the
-  interval is about as fast as can be, so you can group data together in
-  frame jumps using -f to speed them up.
-
-  Note: markers are pre-plotted... (feature or bug?  you decide)
-
-Other useful options:
-
-  You may need to specify files after a double dash (--) argument when
-  following options that accept multiple values (-m and -p specifically).
-
-  To see a scatter plot instead of a line plot, add -s
-
-  To output to a file, use -o FILE.png
-
-  To see a list of known columns in a file:
-
-      log-plotter -l FILES
-
-  Use -d to turn on debugging dumps.
+For usage information, see the webpage at: https://github.com/frc1678/lime-plotter
 
 Author: Wes Hardaker
 """
