@@ -44,7 +44,7 @@ plots:
       ymin: -7
       table: drivetrain_status
       fixedAspect: True
-	  title: X/Y Test
+      title: X/Y Test
     - x: profiled_x_goal
       y: profiled_y_goal
       table: drivetrain_status
