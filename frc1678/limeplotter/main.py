@@ -219,7 +219,7 @@ def clear_data(event):
 
 paused = False
 def pause(event):
-    """Pauses the animation when someone clicks on the graph"""
+    """Pauses the animation when someone clicks the pause button"""
     global paused
     if paused:
         anim.event_source.stop()
@@ -271,6 +271,7 @@ def mark_xdata(x, marker = "x"):
 
 
 def display_time_info(event):
+    """XXX: Needs to be re-connected to a button"""
     # assume this must be timestamp data
     # XXX: shouldn't assume this
     mark_xdata(event.xdata)
@@ -278,6 +279,7 @@ def display_time_info(event):
 
 def create_subplots_from_yaml(yaml_file, default_x='timestamp',
                               default_table=None):
+    """Creates an array of subplots from a yaml specification file"""
     contents = yaml.load(yaml_file, Loader=yaml.FullLoader)
 
     # create an array of all the plots from the hierarchical structure
@@ -309,6 +311,7 @@ def create_subplots_from_yaml(yaml_file, default_x='timestamp',
 
 def create_subplots_from_arguments(arguments, default_x='timestamp',
                                    default_table=None):
+    """Creates an array of subplots from an argparse arguments list"""
     # process arguments into subplots
     subplot = []
     subplots = [subplot]
@@ -334,14 +337,17 @@ def create_subplots_from_arguments(arguments, default_x='timestamp',
     return subplots
 
 def create_plot_info(plots, axes):
-    # The data stored in 'plots' represents a visualization structure,
-    # and is not necessarily related to the collection/tables that
-    # we need to loop through.  We'll use this opportunity to:
-    # - create an axis for each plot
-    # - create a storage data array to iterate over in the future
-    # - create a storage data dictionary entry for each table/x,y column pair
-    #   - put the axis for it in the data entry
-    #   - put any other needed data into the data entry as well
+    """Creates a plot information array list that can be iterated over later.
+
+    The data stored in 'plots' definitions represents a visualization
+    structure, and is not necessarily related to the collection/tables
+    that we need to loop through.  We'll use this opportunity to:
+    - create an axis for each plot
+    - create a storage data array to iterate over in the future
+    - create a storage data dictionary entry for each table/x,y column pair
+      - put the axis for it in the data entry
+      - put any other needed data into the data entry as well
+    """
     global plot_info
     plot_info = []
 
@@ -379,9 +385,67 @@ def create_plot_info(plots, axes):
                 entry['axis'].set_title(entry['options']['title'])
             plot_info.append(entry)
 
+def create_matplotlib_plots(plot_info, animate=False, scatter=False,
+                            x_lims=[], y_lims=[]):
+    """Create the actual matplotlib subplots, setting them up for animation
+    if needed."""
+    # actually do the plotting
+    for plot_entry in plot_info:
+        (x, y) = (plot_entry['x'], plot_entry['y'])
+
+        # These will store the x,y data for each plot
+        x_data = plot_entry['data'][x]
+        y_data = plot_entry['data'][y]
+
+        # set the limits of the graph if defined by the configuration
+        if 'xmin' in plot_entry['options'] and 'xmax' in plot_entry['options']:
+            plot_entry['axis'].set_xlim([float(plot_entry['options']['xmin']),
+                                         float(plot_entry['options']['xmax'])])
+        elif 'xmax' in plot_entry['options']: # assume 0 for min
+            plot_entry['axis'].set_xlim([0.0, float(plot_entry['options']['xmax'])])
+
+        if 'ymin' in plot_entry['options'] and 'ymax' in plot_entry['options']:
+            plot_entry['axis'].set_ylim([float(plot_entry['options']['ymin']),
+                                         float(plot_entry['options']['ymax'])])
+        elif 'ymax' in plot_entry['options']: # assume 0 for min
+            plot_entry['axis'].set_ylim([0.0, float(plot_entry['options']['ymax'])])
+            
+
+        if animate:
+            # Animation requires plotting no data, and doing so in the
+            # update_animate routine instead.  So we store the data now
+            # for later use.
+            if scatter:
+                p = plot_entry['axis'].plot([], [], label=y, ls='',
+                                          marker = '.', ms=1.0)
+                plot_entry['plot'] = p[0]
+                animate_plots.append(p[0])
+            else:
+                p = plot_entry['axis'].plot([], [], label=y)
+                plot_entry['plot'] = p[0]
+                animate_plots.append(p[0])
+
+            if x_lims[0] is None:
+                x_lims = [x_data.min(), x_data.max()]
+                y_lims = [y_data.min(), y_data.max()]
+            else:
+                x_lims = [min(x_lims[0], x_data.min()),
+                          max(x_lims[1], x_data.max())]
+                y_lims = [min(y_lims[0], y_data.min()),
+                          max(y_lims[1], y_data.max())]
+
+        else:
+            if scatter:
+                plot_entry['axis'].scatter(x_data, y_data, label=y,
+                                           marker = '.', s=1.0)
+            else:            
+                plot_entry['axis'].plot(x_data, y_data, label=y)
+    
     
 
 def main():
+    """The main routine that opens a data source, initializes it, creates
+    the plots structures within matplotlib and displays/animates them."""
     global plot_pair_data
     global data_source
     args = parse_args()
@@ -443,58 +507,8 @@ def main():
     y_lims = [None, None]
     x_lims = [None, None]
         
-    # actually do the plotting
-    for plot_entry in plot_info:
-        (x, y) = (plot_entry['x'], plot_entry['y'])
-
-        # These will store the x,y data for each plot
-        x_data = plot_entry['data'][x]
-        y_data = plot_entry['data'][y]
-
-        # set the limits of the graph if defined by the configuration
-        if 'xmin' in plot_entry['options'] and 'xmax' in plot_entry['options']:
-            plot_entry['axis'].set_xlim([float(plot_entry['options']['xmin']),
-                                         float(plot_entry['options']['xmax'])])
-        elif 'xmax' in plot_entry['options']: # assume 0 for min
-            plot_entry['axis'].set_xlim([0.0, float(plot_entry['options']['xmax'])])
-
-        if 'ymin' in plot_entry['options'] and 'ymax' in plot_entry['options']:
-            plot_entry['axis'].set_ylim([float(plot_entry['options']['ymin']),
-                                         float(plot_entry['options']['ymax'])])
-        elif 'ymax' in plot_entry['options']: # assume 0 for min
-            plot_entry['axis'].set_ylim([0.0, float(plot_entry['options']['ymax'])])
-            
-
-        if args.animate:
-            # Animation requires plotting no data, and doing so in the
-            # update_animate routine instead.  So we store the data now
-            # for later use.
-            if args.scatter_plot:
-                p = plot_entry['axis'].plot([], [], label=y, ls='',
-                                          marker = '.', ms=1.0)
-                plot_entry['plot'] = p[0]
-                animate_plots.append(p[0])
-            else:
-                p = plot_entry['axis'].plot([], [], label=y)
-                plot_entry['plot'] = p[0]
-                animate_plots.append(p[0])
-
-            if x_lims[0] is None:
-                x_lims = [x_data.min(), x_data.max()]
-                y_lims = [y_data.min(), y_data.max()]
-            else:
-                x_lims = [min(x_lims[0], x_data.min()),
-                          max(x_lims[1], x_data.max())]
-                y_lims = [min(y_lims[0], y_data.min()),
-                          max(y_lims[1], y_data.max())]
-
-        else:
-            if args.scatter_plot:
-                plot_entry['axis'].scatter(x_data, y_data, label=y,
-                                           marker = '.', s=1.0)
-            else:            
-                plot_entry['axis'].plot(x_data, y_data, label=y)
-
+    create_matplotlib_plots(plot_info, args.animate, args.scatter_plot,
+                            x_lims, y_lims)
 
     # marker_columns will contain a list of column names to used
     # to mark the graphs.  If it contains commas, we'll split it into
@@ -531,8 +545,8 @@ def main():
 
     # add in legends if desired
     if not args.no_legend:
-        for (axis_index, subplot) in enumerate(plots):
-            plot_entry['axis'].legend()
+        for (axis_index, subplot) in enumerate(plot_info):
+            subplot['axis'].legend()
 
     # general clean-up: tighten up the plots and
     plt.tight_layout()
