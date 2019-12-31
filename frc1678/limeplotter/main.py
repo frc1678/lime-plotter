@@ -163,10 +163,12 @@ def parse_args():
     return args
 
 def debug(line):
+    """Prints debug log lines when debugging is turned on"""
     if __debug:
         print(line)
 
 def gather_new_data(plot_info, animate):
+    """Gather's the next round of data to plot when animating"""
     data_source.gather_next_datasets()
     for plot_entry in plot_info:
         # will return a pandas dataframe with x, y
@@ -175,8 +177,9 @@ def gather_new_data(plot_info, animate):
                                                               animate)
 
 def init_animate():
-    """Initialize the plots to nothing.
-    this allows animation looping so we can reset on each loop."""
+    """Initialize the plots to nothing.  this allows animation looping so
+    we can reset on each loop.
+    """
 
     # XXXX: need to reset the data_source counter for LogLoader
     for plot in animate_plots:
@@ -186,7 +189,6 @@ def init_animate():
 
 def update_animate(i):
     """Updates the animation data with 'animate_frames' new frames"""
-    data_source.gather_next_datasets()
     gather_new_data(plot_info, True)
     plots_touched = []
     for plot_entry in plot_info:
@@ -205,10 +207,8 @@ def update_animate(i):
 
     return plots_touched
 
-def test_call(event):
-    print(event)
-
 def clear_data(event):
+    """Called on a button push for live animations to clear the current plots"""
     data_source.clear_data()
 
 paused = False
@@ -231,6 +231,7 @@ def mark_time(pair, index, marker = "x"):
     plot_pair_data[pair]['axis'].scatter([plot_pair_data[pair]['x'][index]],[plot_pair_data[pair]['y'][index]], marker = marker, s=25.0, color='red')
     
 def mark_xdata(x, marker = "x"):
+    """XXX: currently broken"""
     debug("searching for " + str(x))
     for pair in plot_pair_data:
         index = int(len(plot_pair_data[pair]['t']) / 2)
@@ -559,8 +560,6 @@ def main():
             global pause_button
             pause_button = matplotlib.widgets.Button(axnext, 'pause')
             pause_button.on_clicked(pause)
-        else:
-            fig.canvas.mpl_connect('button_press_event', display_time_info)
         
         plt.show()
 
