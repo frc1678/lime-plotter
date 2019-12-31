@@ -313,6 +313,54 @@ def create_subplots_from_arguments(arguments):
                             'y': y})
     return subplots
 
+def create_plot_info(plots, axes):
+    # The data stored in 'plots' represents a visualization structure,
+    # and is not necessarily related to the collection/tables that
+    # we need to loop through.  We'll use this opportunity to:
+    # - create an axis for each plot
+    # - create a storage data array to iterate over in the future
+    # - create a storage data dictionary entry for each table/x,y column pair
+    #   - put the axis for it in the data entry
+    #   - put any other needed data into the data entry as well
+    global plot_info
+    plot_info = []
+
+    for (axis_index, subplot) in enumerate(plots):
+        for entry in subplot:
+            (x,y) = (entry['x'], entry['y'])
+
+            # find the x and y data from all the columns in all the data
+            # note: we don't deal with duplicates...  we probably should
+            # especially because timestamps should all come from the same file
+            debug("checking data for: " + x + ", " + y)
+
+            # find the data columns we need to plot from the correct tables
+            time_data = []
+            yident = data_source.find_column_identifier(y)
+            if x == 'timestamp':
+                xident = data_source.find_column_timestamp_identifier(y)
+            else:
+                xident = data_source.find_column_identifier(x)
+
+            # Yell if we failed to find what they asked for
+            if xident is None:
+                raise ValueError("failed to find x data for %s (with y of %s) " % (x,y))
+            if yident is None:
+                raise ValueError("failed to find y data for " + y)
+            debug("plotting " + x + ", " + y)
+
+            entry['xident'] = xident
+            entry['yident'] = yident
+            entry['axis'] = axes[axis_index]
+            entry['data_source'] = data_source # someday we may handle more than one at a time
+            if 'fixedAspect' in entry['options'] and entry['options']['fixedAspect']:
+                entry['axis'].set_aspect('equal')
+            if 'title' in entry['options']:
+                entry['axis'].set_title(entry['options']['title'])
+            plot_info.append(entry)
+
+    
+
 def main():
     global plot_pair_data
     global data_source
@@ -366,52 +414,7 @@ def main():
         axes = [axes]
 
     # the data 
-
-    # The data stored in 'plots' represents a visualization structure,
-    # and is not necessarily related to the collection/tables that
-    # we need to loop through.  We'll use this opportunity to:
-    # - create an axis for each plot
-    # - create a storage data array to iterate over in the future
-    # - create a storage data dictionary entry for each table/x,y column pair
-    #   - put the axis for it in the data entry
-    #   - put any other needed data into the data entry as well
-    global plot_info
-    plot_info = []
-
-    mplt_plots = {}
-    for (axis_index, subplot) in enumerate(plots):
-        for entry in subplot:
-            (x,y) = (entry['x'], entry['y'])
-
-            # find the x and y data from all the columns in all the data
-            # note: we don't deal with duplicates...  we probably should
-            # especially because timestamps should all come from the same file
-            debug("checking data for: " + x + ", " + y)
-
-            # find the data columns we need to plot from the correct tables
-            time_data = []
-            yident = data_source.find_column_identifier(y)
-            if x == 'timestamp':
-                xident = data_source.find_column_timestamp_identifier(y)
-            else:
-                xident = data_source.find_column_identifier(x)
-
-            # Yell if we failed to find what they asked for
-            if xident is None:
-                raise ValueError("failed to find x data for %s (with y of %s) " % (x,y))
-            if yident is None:
-                raise ValueError("failed to find y data for " + y)
-            debug("plotting " + x + ", " + y)
-
-            entry['xident'] = xident
-            entry['yident'] = yident
-            entry['axis'] = axes[axis_index]
-            entry['data_source'] = data_source # someday we may handle more than one at a time
-            if 'fixedAspect' in entry['options'] and entry['options']['fixedAspect']:
-                entry['axis'].set_aspect('equal')
-            if 'title' in entry['options']:
-                entry['axis'].set_title(entry['options']['title'])
-            plot_info.append(entry)
+    create_plot_info(plots, axes)
 
     # gather the data we need to plot
     # (for animation or network tables this will only gather a small sample)
@@ -450,12 +453,12 @@ def main():
             # update_animate routine instead.  So we store the data now
             # for later use.
             if args.scatter_plot:
-                p = axes[axis_index].plot([], [], label=y, ls='',
+                p = plot_entry['axis'].plot([], [], label=y, ls='',
                                           marker = '.', ms=1.0)
                 plot_entry['plot'] = p[0]
                 animate_plots.append(p[0])
             else:
-                p = axes[axis_index].plot([], [], label=y)
+                p = plot_entry['axis'].plot([], [], label=y)
                 plot_entry['plot'] = p[0]
                 animate_plots.append(p[0])
 
@@ -475,18 +478,6 @@ def main():
             else:            
                 plot_entry['axis'].plot(x_data, y_data, label=y)
 
-
-        # store data for later
-        # plot_pair_data[counter] = {
-        #     'x': x_data,
-        #     'y': y_data,
-        #     't': time_data,
-        #     'axis': plot_entry['axis'],
-        # }
-
-        # # remember a single dataset just for generic reference
-        # if 'sample' not in plot_pair_data:
-        #     plot_pair_data['sample'] = plot_pair_data[counter]
 
     # marker_columns will contain a list of column names to used
     # to mark the graphs.  If it contains commas, we'll split it into
@@ -524,7 +515,7 @@ def main():
     # add in legends if desired
     if not args.no_legend:
         for (axis_index, subplot) in enumerate(plots):
-            axes[axis_index].legend()
+            plot_entry['axis'].legend()
 
     # general clean-up: tighten up the plots and
     plt.tight_layout()
