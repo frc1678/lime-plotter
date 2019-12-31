@@ -126,6 +126,9 @@ def parse_args():
     parser.add_argument("-l", "--list-variables", action="store_true",
                         help="Just list the available variables in the passed files and exit")
 
+    parser.add_argument("-n", "--no-legend", action="store_true",
+                        help="Don't print a legend on the graphs")
+
     parser.add_argument("-t", "--time-range", nargs=2, type=float,
                         help="Only plot data between two time stamps")
 
@@ -164,6 +167,7 @@ def debug(line):
         print(line)
 
 def gather_new_data(plot_info, animate):
+    data_source.gather_next_datasets()
     for plot_entry in plot_info:
         # will return a pandas dataframe with x, y
         plot_entry['data'] = plot_entry['data_source'].gather(plot_entry['xident'],
@@ -221,6 +225,7 @@ def pause(event):
     paused = not paused
 
 def mark_time(pair, index, marker = "x"):
+    """XXX: currently broken"""
     # mark this on every sub-axis
     debug("  marking " + pair + " at " + str(plot_pair_data[pair]['x'][index]) + "," + str(plot_pair_data[pair]['y'][index]))
     plot_pair_data[pair]['axis'].scatter([plot_pair_data[pair]['x'][index]],[plot_pair_data[pair]['y'][index]], marker = marker, s=25.0, color='red')
@@ -323,26 +328,32 @@ def main():
 
     # What are we plotting?  -- open the stream
 
-    # read in data
+    # Create the data source object where we'll extract data from
     if args.log_files:
-        data_source = LogLoader(animation_frames=args.animation_frames)
-        data_source.load_file_or_directories(args.log_files)
+        data_source = LogLoader(animation_frames=args.animation_frames,
+                                sources=args.log_files)
 
     elif args.network_server:
         data_source = NetworkTablesLoader(args.network_server, plots)
-        data_source.open()
         
     else:
         sys.stderr.write("either a log file list (-L) or a network server (-N) is needed")
         exit(1)
+
+    # see if the data source is only animatable (ie, live data)
+    if data_source.animate_only():
+        args.animate = True
         
+    # tell the datasource to initialize.
+    data_source.open()
         
     # just generate a list of variables if requested
     if args.list_variables:
-        data = data_source.dataframes
-        for filename in data:
-            print(filename + ":")
-            for column in data[filename].columns:
+        # Not all data sources support this
+        data = data_source.variables_available
+        for source in data:
+            print(source + ":")
+            for column in data[source]:
                 print("  " + column)
         exit()
 
@@ -410,16 +421,6 @@ def main():
         
     # actually do the plotting
     for plot_entry in plot_info:
-        # if axis_index > 0:
-        #     # do this only for plots beyond the first -- updating the info from the last plot
-            
-        #     # if args.animate:
-        #     #     axes[axis_index].set_xlim([min(animate_data[axis_index][0])],
-        #     #                               [max(animate_data[axis_index][0])])
-        #     axes[axis_index-1].legend()
-        #     axes[axis_index-1].set_xlim(x_lims)
-        #     axes[axis_index-1].set_ylim(y_lims)
-
         (x, y) = (plot_entry['x'], plot_entry['y'])
 
         # These will store the x,y data for each plot
@@ -519,9 +520,15 @@ def main():
                     is_low = True
             pass
 
-    # general clean-up: tighten up the plots and add the last legend
+    # add in legends if desired
+    if not args.no_legend:
+        for (axis_index, subplot) in enumerate(plots):
+            axes[axis_index].legend()
+
+    # general clean-up: tighten up the plots and
     plt.tight_layout()
-    #axes[-1].legend()
+
+    # set the limits of the graph
     # axes[-1].set_xlim(x_lims)
     # axes[-1].set_ylim(y_lims)
 

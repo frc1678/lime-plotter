@@ -3,9 +3,13 @@ import pandas as pd
 import os
 import os.path
 
-class LogLoader(object):
-    def __init__(self, directory = None, animation_frames=1):
+from . import loaderbase
+
+class LogLoader(loaderbase.LoaderBase):
+    def __init__(self, directory = None, animation_frames=1,
+                 sources=None):
         self._directory = directory
+        self._sources = sources
         self.clear()
         self._slice_count = 0
         self._slice_increment = animation_frames
@@ -17,8 +21,21 @@ class LogLoader(object):
         return self._dataframes
 
     @property
+    def variables_available(self):
+        """Returns a list of tables/columns we found in the data source(s)."""
+        outlist = {}
+        for filename in self._dataframes:
+            outlist[filename] = {}
+            for column in self._dataframes[filename].columns:
+                outlist[filename][column] = 1
+        return outlist
+
+    @property
     def csvs(self):
         return self._csvs
+
+    def open(self):
+        self.load_file_or_directories(self._sources)
 
     def gather_next_datasets(self):
         self._slice_count += self._slice_increment

@@ -7,6 +7,8 @@ import argparse
 import sys
 import pandas as pd
 
+from . import loaderbase
+
 def parse_args():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
@@ -26,12 +28,17 @@ def parse_args():
 
 
 
-class NetworkTablesLoader():
+class NetworkTablesLoader(loaderbase.LoaderBase):
     def __init__(self, server, plots=[{'y': 'elevator_height',
                                        'table': 'superstructure_status'}]):
         self._server = server
         self._plots = plots
         self._time = 0.0
+    
+    def animate_only(self):
+        """This loader only loads data over time, and thus must be
+        animated."""
+        return True
     
     def open(self):
         """Opens the networktables server connection and creates storage"""
