@@ -148,6 +148,12 @@ def parse_args():
     parser.add_argument("-d", "--debug", action="store_true",
                         help="Turn on debugging output")
 
+    parser.add_argument("-X", "--default-x", default="timestamp", type=str,
+                        help="Default x column when not specified")
+
+    parser.add_argument("-T", "--default-table", default=None, type=str,
+                        help="Default table name when not specified")
+    
     args = parser.parse_args()
 
     if not args.plot_pairs and not args.list_variables and not args.yaml_plot:
@@ -270,20 +276,29 @@ def display_time_info(event):
     mark_xdata(event.xdata)
     plt.show()
 
-def create_subplots_from_yaml(yaml_file):
+def create_subplots_from_yaml(yaml_file, default_x='timestamp',
+                              default_table=None):
     contents = yaml.load(yaml_file, Loader=yaml.FullLoader)
 
+    # create an array of all the plots from the hierarchical structure
     subplots = []
     for key in contents['plots']:
         subplot = []
         subplots.append(subplot)
+
+        # for each subplot entry in the plots list
+        # create it's information structure consisting of:
+        # x: the x column name
+        # y: the y column name
+        # table: the table name
+        # options: the rest of the options of any kind
         for entry in contents['plots'][key]:
             if 'x' not in entry:
-                x = 'timestamp'
+                x = default_x
             else:
                 x = entry['x']
             y = entry['y']
-            table = None
+            table = default_table
             if 'table' in entry:
                 table = entry['table']
             subplot.append({'x': x,
@@ -292,7 +307,8 @@ def create_subplots_from_yaml(yaml_file):
                             'options': entry})
     return subplots
 
-def create_subplots_from_arguments(arguments):
+def create_subplots_from_arguments(arguments, default_x='timestamp',
+                                   default_table=None):
     # process arguments into subplots
     subplot = []
     subplots = [subplot]
@@ -307,10 +323,14 @@ def create_subplots_from_arguments(arguments):
                 x = pair[:pair.index(",")]
                 y = pair[pair.index(",")+1:]
             else:
-                x = 'timestamp'
+                x = default_x
                 y = pair
+            table=None
+            if default_table is not None:
+                table=default_table
             subplot.append({'x': x,
-                            'y': y})
+                            'y': y,
+                            'table': table})
     return subplots
 
 def create_plot_info(plots, axes):
@@ -431,10 +451,7 @@ def main():
         x_data = plot_entry['data'][x]
         y_data = plot_entry['data'][y]
 
-        # if not args.animate:
-        #     plot_entry['axis'].set_xlim([str(plot_entry['options']['xmin']),
-        #                                  str(plot_entry['options']['xmax'])])
-
+        # set the limits of the graph if defined by the configuration
         if 'xmin' in plot_entry['options'] and 'xmax' in plot_entry['options']:
             plot_entry['axis'].set_xlim([float(plot_entry['options']['xmin']),
                                          float(plot_entry['options']['xmax'])])
