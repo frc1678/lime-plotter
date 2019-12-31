@@ -57,5 +57,5 @@ Saving this to xy.yml and running lime-plotter.py to load logs from a
 	
 Might produce the following graph:
 
-![./images/xytest.png](X/Y Test Graph)
+![X/Y Test Graph](./images/xytest.png)
 
