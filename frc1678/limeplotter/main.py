@@ -129,6 +129,11 @@ def update_animate(i):
     for plot_entry in plot_info:
         xdata = plot_entry['data'][plot_entry['x']]
         ydata = plot_entry['data'][plot_entry['y']]
+        if 'last' in plot_entry['options']:
+            print(xdata)
+            xdata = xdata[-int(plot_entry['options']['last']):-1]
+            ydata = ydata[-int(plot_entry['options']['last']):-1]
+
         plot_entry['plot'].set_data(xdata, ydata)
         plots_touched.append(plot_entry['plot'])
     
