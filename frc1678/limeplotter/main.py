@@ -266,7 +266,8 @@ def create_subplots_from_arguments(arguments, default_x='timestamp',
                 table=default_table
             subplot.append({'x': x,
                             'y': y,
-                            'table': table})
+                            'table': table,
+                            'options': {}})
     return subplots
 
 def create_plot_info(plots, axes):
