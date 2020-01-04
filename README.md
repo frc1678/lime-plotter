@@ -1,6 +1,6 @@
 # Overview
 
-The **lime-plotter* application plots data collected from robots in
+The *lime-plotter* application plots data collected from robots in
 the First Robotics Competitions and plots them to the screen or to a
 PNG file.  It can read data from CSV based log files, or via a
 networktables server (IE, from a robot over its wireless network).
