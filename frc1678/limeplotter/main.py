@@ -129,6 +129,10 @@ def update_animate(i):
     for plot_entry in plot_info:
         xdata = plot_entry['data'][plot_entry['x']]
         ydata = plot_entry['data'][plot_entry['y']]
+        if 'last' in plot_entry['options']:
+            xdata = xdata[-int(plot_entry['options']['last']):-1]
+            ydata = ydata[-int(plot_entry['options']['last']):-1]
+
         plot_entry['plot'].set_data(xdata, ydata)
         plots_touched.append(plot_entry['plot'])
     
@@ -262,7 +266,8 @@ def create_subplots_from_arguments(arguments, default_x='timestamp',
                 table=default_table
             subplot.append({'x': x,
                             'y': y,
-                            'table': table})
+                            'table': table,
+                            'options': {}})
     return subplots
 
 def create_plot_info(plots, axes):
@@ -340,17 +345,22 @@ def create_matplotlib_plots(plot_info, animate=False, scatter=False,
             plot_entry['axis'].set_ylim([0.0, float(plot_entry['options']['ymax'])])
             
 
+        marker_size=5.0
+        if 'marker_size' in plot_entry['options']:
+            marker_size = float(plot_entry['options']['marker_size'])
+            print("marker size: ------------ " + str(marker_size))
+            
         if animate:
             # Animation requires plotting no data, and doing so in the
             # update_animate routine instead.  So we store the data now
             # for later use.
             if scatter:
                 p = plot_entry['axis'].plot([], [], label=y, ls='',
-                                          marker = '.', ms=1.0)
+                                            marker = '.', ms=marker_size)
                 plot_entry['plot'] = p[0]
                 animate_plots.append(p[0])
             else:
-                p = plot_entry['axis'].plot([], [], label=y)
+                p = plot_entry['axis'].plot([], [], label=y, ms=marker_size)
                 plot_entry['plot'] = p[0]
                 animate_plots.append(p[0])
 
@@ -366,9 +376,9 @@ def create_matplotlib_plots(plot_info, animate=False, scatter=False,
         else:
             if scatter:
                 plot_entry['axis'].scatter(x_data, y_data, label=y,
-                                           marker = '.', s=1.0)
+                                           marker = '.', s=marker_size)
             else:            
-                plot_entry['axis'].plot(x_data, y_data, label=y)
+                plot_entry['axis'].plot(x_data, y_data, label=y, ms=marker_size)
     
     
 

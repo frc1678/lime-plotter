@@ -82,6 +82,7 @@ class NetworkTablesLoader(loaderbase.LoaderBase):
                     value = self._nettables[table].getNumber(column, 0.0) # default to 0 if no data
                 self._tables[table][column].append(value)
                 #print(table + "/" + column + " = " + str(value))
+        #print(self._tables)
 
     def gather(self, xident, yident, animate):
         # animate is pretty much always useless to us since
