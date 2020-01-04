@@ -23,6 +23,13 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires = '>=3',
+    install_requires=[
+        'pynetworktables',
+        'numpy',
+        'pandas',
+        'pyyaml',
+        'matplotlib',
+    ],
     # test_suite='nose.collector',
     # tests_require=['nose'],
 )
