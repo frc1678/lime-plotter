@@ -16,6 +16,7 @@ setuptools.setup(
     entry_points={
         'console_scripts': [
             'lime-plotter.py = frc1678.limeplotter.main:main',
+            'lime-server.py = frc1678.limeplotter.networktablesserver:main',
         ]
     },
     classifiers=[
