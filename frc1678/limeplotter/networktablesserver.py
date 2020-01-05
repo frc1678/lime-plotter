@@ -67,7 +67,7 @@ def main():
 
     while True:
         nts.transmit()
-        time.sleep(.02)
+        time.sleep(.002)
 
 if __name__ == "__main__":
     main()
