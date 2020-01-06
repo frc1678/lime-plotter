@@ -4,7 +4,7 @@ import re
 import sys
 
 from networktables import NetworkTables
-from logLoader import LogLoader
+from frc1678.limeplotter.logloader import LogLoader
 
 class NetworkTablesServer():
     def __init__(self, logfiles):
