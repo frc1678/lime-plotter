@@ -69,6 +69,10 @@ class NetworkTablesLoader(loaderbase.LoaderBase):
                 self._tables[table][x] = []
                 self._tables[table][y] = [] # overwriting is ok if done
 
+    @property
+    def variables_available(self):
+        return ["not yet"]
+
     def gather_next_datasets(self):
         """Loops through the existing tables and columns and fetches 
            the next set of data from the nettables server.
@@ -138,7 +142,7 @@ class NetworkTablesLoader(loaderbase.LoaderBase):
 def main():
     ntl = NetworkTablesLoader("127.0.0.1")
     ntl.open()
-    ntl.load_n_rows()
+    print(ntl.variables_available)
     while True:
         ntl.debug_print()
 

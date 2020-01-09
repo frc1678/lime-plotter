@@ -1,3 +1,5 @@
+"""A test server for re-transmitting CSV files over networktables"""
+
 import time
 import logging
 import re
@@ -12,11 +14,12 @@ class NetworkTablesServer():
         if type(self._logfiles) != list:
             self._logfiles = [self._logfiles]
 
-    def inititalize(self):
+    def open(self):
         # get our log data
-        log_loader = LogLoader()
-        log_loader.load_file_or_directories(self._logfiles)
-        self._data = log_loader.dataframes
+        log_loader = LogLoader(sources=self._logfiles)
+        self._log_loader = log_loader
+        log_loader.open()
+        self._vars = log_loader.variables_available
         self._index = 0
 
         logging.basicConfig(level=logging.DEBUG)
@@ -26,33 +29,44 @@ class NetworkTablesServer():
 
         # get tables and columns
         self._tables = {}
-        for filename in self._data.keys():
+        for filename in self._vars.keys():
             tablename = filename
             tablename = re.sub(".*/", "", tablename)
-            tablename = re.sub(".csv$", "", tablename)
+            tablename = re.sub(".csv", "", tablename)
             print(tablename)
-            for column in self._data[filename].columns:
+            for column in self._vars[filename]:
                 print("  "+column)
             self._tables[tablename] = { 'nettable': NetworkTables.getTable(tablename),
-                                        'data': self._data[filename] }
+                                        'columns': self._vars[filename],
+                                        'table': tablename,
+                                        'index': filename,
+            #                            'data': self._data[table]
+            }
 
     def transmit(self):
+        self._log_loader.gather_next_datasets()
         for tablename in self._tables:
-            for column in self._tables[tablename]['data'].columns:
-                self._tables[tablename]['nettable'].putNumber(column, self._tables[tablename]['data'][column][self._index])
-        self._index += 1
-                
+            for column in self._tables[tablename]['columns']:
+                if column == 'timestamp':
+                    continue
+                data = self._log_loader.gather([self._tables[tablename]['index'], 'timestamp'],
+                                               [self._tables[tablename]['index'], column], True)
+                #print(column + ": " + str(data[column][-2:-1]))
+                try:
+                    self._tables[tablename]['nettable'].putNumber(column, data[column][-2:-1])
+                except:
+                    pass
 
 def main():
     source = "573/superstructure_status.csv"
     if len(sys.argv) > 1:
         source = sys.argv[1]
     nts = NetworkTablesServer(source)
-    nts.inititalize()
+    nts.open()
 
     while True:
         nts.transmit()
-        time.sleep(.01)
+        time.sleep(.002)
 
 if __name__ == "__main__":
     main()
