@@ -80,7 +80,7 @@ class NetworkTablesLoader(loaderbase.LoaderBase):
         self.open_networktables()
         while not NetworkTables.isConnected():
             time.sleep(.1)
-q
+
         results = {}
         tables = NetworkTables.getGlobalTable().getSubTables()
         for table in tables:
