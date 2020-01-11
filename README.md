@@ -42,6 +42,12 @@ a default table to read from.
 
     lime-plotter.py -N 10.16.78.1 -t nettable
 
+## Listing available tables / columns
+
+This works for both NetworkTables and CSV logs:
+
+    lime-plotter.py -N 10.16.78.1 -l
+
 # Example configuration
 
 The following are YAML file configuration examples.
@@ -67,6 +73,7 @@ plots:
     - x: profiled_x_goal
       y: profiled_y_goal
       table: drivetrain_status
+      last: 100
 ```
 
 Saving this to xy.yml and running lime-plotter.py to load logs from a
