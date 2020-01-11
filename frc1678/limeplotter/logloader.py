@@ -14,6 +14,7 @@ class LogLoader(loaderbase.LoaderBase):
         self._slice_count = 0
         self._slice_increment = animation_frames
         self._slice_start = 0
+        self._opened = False
         pass
 
     @property
@@ -23,6 +24,7 @@ class LogLoader(loaderbase.LoaderBase):
     @property
     def variables_available(self):
         """Returns a list of tables/columns we found in the data source(s)."""
+        self.open()
         outlist = {}
         for filename in self._dataframes:
             outlist[filename] = {}
@@ -35,6 +37,9 @@ class LogLoader(loaderbase.LoaderBase):
         return self._csvs
 
     def open(self):
+        if self._opened:
+            return
+        self._opened = True
         self.load_file_or_directories(self._sources)
 
     def gather_next_datasets(self):

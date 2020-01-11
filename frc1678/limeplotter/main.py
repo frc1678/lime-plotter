@@ -393,7 +393,9 @@ def main():
         matplotlib.use('Agg') # avoids needing an X terminal
 
     # What are we plotting?  config either from command line or a yaml file
-    if args.plot_pairs:
+    if args.list_variables:
+        plots = None
+    elif args.plot_pairs:
         plots = create_subplots_from_arguments(args.plot_pairs)
     else:
         plots = create_subplots_from_yaml(args.yaml_plot)
@@ -416,9 +418,6 @@ def main():
     if data_source.animate_only():
         args.animate = True
         
-    # tell the datasource to initialize.
-    data_source.open()
-        
     # just generate a list of variables if requested
     if args.list_variables:
         # Not all data sources support this
@@ -429,6 +428,9 @@ def main():
                 print("  " + column)
         exit()
 
+    # tell the datasource to initialize.
+    data_source.open()
+        
     # How are we plotting them -- create the matplotlib axes 
 
     # create a figure and NxM plots

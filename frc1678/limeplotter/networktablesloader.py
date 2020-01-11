@@ -29,8 +29,7 @@ def parse_args():
 
 
 class NetworkTablesLoader(loaderbase.LoaderBase):
-    def __init__(self, server, plots=[{'y': 'elevator_height',
-                                       'table': 'superstructure_status'}]):
+    def __init__(self, server, plots=[{}]):
         self._server = server
         self._plots = plots
         self._time = 0.0
@@ -40,15 +39,22 @@ class NetworkTablesLoader(loaderbase.LoaderBase):
         animated."""
         return True
     
-    def open(self):
-        """Opens the networktables server connection and creates storage"""
+    def open_networktables(self):
+        """Opens the networktables server connection"""
         logging.basicConfig(level=logging.DEBUG)
 
         NetworkTables.initialize(server=self._server)
         
+
+    def open(self):
+        """Opens the networktables server connection and creates storage"""
+        
         self._nettables = {}
         self._tables = {}
         self._dfs = {}
+
+        self.open_networktables()
+
         for plot in self._plots:
             for subplot in plot:
                 table = subplot['table']
@@ -71,7 +77,20 @@ class NetworkTablesLoader(loaderbase.LoaderBase):
 
     @property
     def variables_available(self):
-        return ["not yet"]
+        self.open_networktables()
+        while not NetworkTables.isConnected():
+            time.sleep(.1)
+q
+        results = {}
+        tables = NetworkTables.getGlobalTable().getSubTables()
+        for table in tables:
+            net_table = NetworkTables.getTable(table)
+            results[table] = {}
+            keys = net_table.getKeys()
+            for key in keys:
+                results[table][key] = key
+                
+        return results
 
     def gather_next_datasets(self):
         """Loops through the existing tables and columns and fetches 
