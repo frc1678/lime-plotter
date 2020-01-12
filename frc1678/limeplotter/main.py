@@ -519,7 +519,7 @@ def main():
             button = matplotlib.widgets.Button(axnext, 'clear')
             button.on_clicked(clear_data)
 
-            axnext = plt.axes([0.1, 0.0, 0.05, 0.05])
+            axnext = plt.axes([0.05, 0.0, 0.05, 0.05])
             global pause_button
             pause_button = matplotlib.widgets.Button(axnext, 'pause')
             pause_button.on_clicked(pause)
