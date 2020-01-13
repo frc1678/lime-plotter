@@ -33,6 +33,7 @@ class NetworkTablesLoader(loaderbase.LoaderBase):
         self._server = server
         self._plots = plots
         self._time = 0.0
+        self._network_table_list = None
     
     def animate_only(self):
         """This loader only loads data over time, and thus must be
@@ -50,13 +51,21 @@ class NetworkTablesLoader(loaderbase.LoaderBase):
         """Opens the networktables server connection and creates storage"""
         
         self._nettables = {}
-        self._tables = {}
+        self._tables = None
         self._dfs = {}
 
         self.open_networktables()
 
+    def setup_table_storage(self):
+        if self._tables:
+            return
+    
+        self._tables = {}
         for plot in self._plots:
             for subplot in plot:
+                if 'table' in subplot:
+                    subplot['table'] = subplot['yident'][0]
+
                 table = subplot['table']
 
                 if table not in self._nettables:
@@ -77,10 +86,15 @@ class NetworkTablesLoader(loaderbase.LoaderBase):
 
     @property
     def variables_available(self):
+        if self._network_table_list:
+            return self._network_table_list
+
+        # open the connection to the server and wait
         self.open_networktables()
         while not NetworkTables.isConnected():
             time.sleep(.1)
 
+        # collect all the tables and all the rows in each table
         results = {}
         tables = NetworkTables.getGlobalTable().getSubTables()
         for table in tables:
@@ -90,12 +104,14 @@ class NetworkTablesLoader(loaderbase.LoaderBase):
             for key in keys:
                 results[table][key] = key
                 
+        self._network_table_list = results
         return results
 
     def gather_next_datasets(self):
         """Loops through the existing tables and columns and fetches 
            the next set of data from the nettables server.
         """
+        self.setup_table_storage()
         self._time += 1.0
         for table in self._tables:
             for column in self._tables[table]:
@@ -128,6 +144,11 @@ class NetworkTablesLoader(loaderbase.LoaderBase):
         return results
 
     def find_column_identifier(self, column_name):
+        results = super().find_column_identifier(column_name, self.variables_available)
+        if results:
+            return results
+
+        # hope we already have plot info then
         for plot in self._plots:
             for subplot in plot:
                 if subplot['x'] == column_name:
@@ -136,6 +157,13 @@ class NetworkTablesLoader(loaderbase.LoaderBase):
                     return [subplot['table'], subplot['y']]
 
     def find_column_timestamp_identifier(self, column_name, matching = 'timestamp'):
+        results = super().find_column_timestamp_identifier(column_name,
+                                                           self.variables_available,
+                                                           matching)
+        if results:
+            return results
+
+        # hope we already have plot info then
         for plot in self._plots:
             for subplot in plot:
                 if subplot['y']== column_name:
