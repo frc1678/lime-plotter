@@ -59,4 +59,21 @@ class LoaderBase():
         out all past stored data."""
         pass
 
+    def find_column_identifier(self, column_name, table_info):
+        "Finds an column name in a nested structure of table/column_names "
+        for table in table_info:
+            if column_name in table_info[table]:
+                return [table, column_name]
+
+    def find_column_timestamp_identifier(self, column_name, table_info,
+                                         matching = 'timestamp'):
+        """Same, but looks for a column 'matching' for a table identified by a
+        different column_name ; useful for looking for duplicate
+        'matching' named columns (eg, timestamps) that exist in every
+        table.
+        """
+        for table in table_info:
+            if column_name in table_info[table]:
+                # XXX todo:: make sure matching exists before returning it
+                return [table, matching]
 
