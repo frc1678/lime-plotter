@@ -131,6 +131,8 @@ def update_animate(i):
         xlims = [1e10,-1e10]
         ylims = [1e10,-1e10]
         plot_entry = None
+        update_x_limits = True
+        update_y_limits = True
         for entry in subplot:
             plot_entry = entry
             xdata = plot_entry['data'][plot_entry['x']]
@@ -147,11 +149,22 @@ def update_animate(i):
             xlims[1] = max(xdata.max(), xlims[1])
             ylims[1] = max(ydata.max(), ylims[1])
 
+            if 'x_axis_set' in plot_entry:
+                update_x_limits = False
+
+            if 'y_axis_set' in plot_entry:
+                update_y_limits = False
+
         # steals last plot from loop
-        plot_entry['axis'].set_xlim(xlims)
-        plot_entry['axis'].set_ylim(ylims)
-        plot_entry['axis'].relim()
-        plot_entry['axis'].autoscale_view()
+        if update_x_limits:
+            plot_entry['axis'].set_xlim(xlims)
+            
+        if update_y_limits:
+            plot_entry['axis'].set_ylim(ylims)
+
+        if update_x_limits or update_y_limits:
+            plot_entry['axis'].relim()
+            plot_entry['axis'].autoscale_view()
 
         #plot_entry['axis'].get_yaxis().set_ylim(ylims)
 
@@ -347,14 +360,18 @@ def create_matplotlib_plots(plot_info, animate=False, scatter=False,
         if 'xmin' in plot_entry['options'] and 'xmax' in plot_entry['options']:
             plot_entry['axis'].set_xlim([float(plot_entry['options']['xmin']),
                                          float(plot_entry['options']['xmax'])])
+            plot_entry['x_axis_set'] = True
         elif 'xmax' in plot_entry['options']: # assume 0 for min
             plot_entry['axis'].set_xlim([0.0, float(plot_entry['options']['xmax'])])
+            plot_entry['x_axis_set'] = True
 
         if 'ymin' in plot_entry['options'] and 'ymax' in plot_entry['options']:
             plot_entry['axis'].set_ylim([float(plot_entry['options']['ymin']),
                                          float(plot_entry['options']['ymax'])])
+            plot_entry['y_axis_set'] = True
         elif 'ymax' in plot_entry['options']: # assume 0 for min
             plot_entry['axis'].set_ylim([0.0, float(plot_entry['options']['ymax'])])
+            plot_entry['y_axis_set'] = True
             
 
         marker_size=5.0
