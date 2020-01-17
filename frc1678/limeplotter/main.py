@@ -30,6 +30,7 @@ plot_info = None
 anim = None
 data_source = None
 pause_button = None
+savde_plots = None
 
 def parse_args():
     parser = argparse.ArgumentParser(epilog = "Example usage: log-plotter.py -p estimated_x_position,estimated_y_position / linear_velocity angular_velocity -a -f 50 drivetrain_status.csv")
@@ -126,23 +127,33 @@ def update_animate(i):
     """Updates the animation data with 'animate_frames' new frames"""
     gather_new_data(plot_info, True)
     plots_touched = []
-    for plot_entry in plot_info:
-        xdata = plot_entry['data'][plot_entry['x']]
-        ydata = plot_entry['data'][plot_entry['y']]
-        if 'last' in plot_entry['options']:
-            xdata = xdata[-int(plot_entry['options']['last']):-1]
-            ydata = ydata[-int(plot_entry['options']['last']):-1]
+    for (axis_index, subplot) in enumerate(saved_plots):
+        xlims = [1e10,-1e10]
+        ylims = [1e10,-1e10]
+        plot_entry = None
+        for entry in subplot:
+            plot_entry = entry
+            xdata = plot_entry['data'][plot_entry['x']]
+            ydata = plot_entry['data'][plot_entry['y']]
+            if 'last' in plot_entry['options']:
+                xdata = xdata[-int(plot_entry['options']['last']):-1]
+                ydata = ydata[-int(plot_entry['options']['last']):-1]
 
-        plot_entry['plot'].set_data(xdata, ydata)
-        plots_touched.append(plot_entry['plot'])
-    
-        #print([xdata.min(), xdata.max()])
-        # plot_entry['axis'].set_xlim([xdata.min(), xdata.max()])
-        # plot_entry['axis'].set_ylim([ydata.min(), ydata.max()])
-        # plot_entry['axis'].relim()
-        # plot_entry['axis'].autoscale_view()
+            plot_entry['plot'].set_data(xdata, ydata)
+            plots_touched.append(plot_entry['plot'])
 
-        #     axes[axis_index-1].set_ylim(y_lims)
+            xlims[0] = min(xdata.min(), xlims[0])
+            ylims[0] = min(ydata.min(), ylims[0])
+            xlims[1] = max(xdata.max(), xlims[1])
+            ylims[1] = max(ydata.max(), ylims[1])
+
+        # steals last plot from loop
+        plot_entry['axis'].set_xlim(xlims)
+        plot_entry['axis'].set_ylim(ylims)
+        plot_entry['axis'].relim()
+        plot_entry['axis'].autoscale_view()
+
+        #plot_entry['axis'].get_yaxis().set_ylim(ylims)
 
     return plots_touched
 
@@ -282,8 +293,9 @@ def create_plot_info(plots, axes):
       - put the axis for it in the data entry
       - put any other needed data into the data entry as well
     """
-    global plot_info
+    global plot_info, saved_plots
     plot_info = []
+    saved_plots = plots
 
     for (axis_index, subplot) in enumerate(plots):
         for entry in subplot:
@@ -357,12 +369,11 @@ def create_matplotlib_plots(plot_info, animate=False, scatter=False,
             if scatter:
                 p = plot_entry['axis'].plot([], [], label=y, ls='',
                                             marker = '.', ms=marker_size)
-                plot_entry['plot'] = p[0]
-                animate_plots.append(p[0])
             else:
                 p = plot_entry['axis'].plot([], [], label=y, ms=marker_size)
-                plot_entry['plot'] = p[0]
-                animate_plots.append(p[0])
+
+            plot_entry['plot'] = p[0]
+            animate_plots.append(p[0])
 
             if x_lims[0] is None:
                 x_lims = [x_data.min(), x_data.max()]
@@ -523,7 +534,7 @@ def main():
             global pause_button
             pause_button = matplotlib.widgets.Button(axnext, 'pause')
             pause_button.on_clicked(pause)
-        
+
         plt.show()
 
 if __name__ == "__main__":
