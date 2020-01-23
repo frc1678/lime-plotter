@@ -397,7 +397,7 @@ def create_matplotlib_plots(plot_info, animate=False, scatter=False):
             marker_size=5.0
             if 'marker_size' in plot_entry['options']:
                 marker_size = float(plot_entry['options']['marker_size'])
-                print("marker size: ------------ " + str(marker_size))
+                debug("marker size: ------------ " + str(marker_size))
                 
             if animate:
                 # Animation requires plotting no data, and doing so in the
@@ -437,7 +437,7 @@ def main():
     elif args.plot_pairs:
         plots = create_subplots_from_arguments(args.plot_pairs)
     else:
-        plots = create_subplots_from_yaml(args.yaml_plot)
+        plots = create_subplots_from_yaml(args.yaml_plot, default_x=args.default_x)
 
     # What are we plotting?  -- open the stream
 

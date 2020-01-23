@@ -50,7 +50,7 @@ class NetworkTablesServer():
                 if column == 'timestamp':
                     continue
                 data = self._log_loader.gather([self._tables[tablename]['index'], 'timestamp'],
-                                               [self._tables[tablename]['index'], column], True)
+                                               [[self._tables[tablename]['index'], column]], True)
                 #print(column + ": " + str(data[column][-2:-1]))
                 try:
                     self._tables[tablename]['nettable'].putNumber(column, data[column][-2:-1])

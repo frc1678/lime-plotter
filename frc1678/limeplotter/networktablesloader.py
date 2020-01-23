@@ -63,26 +63,22 @@ class NetworkTablesLoader(loaderbase.LoaderBase):
         self._tables = {}
         for plot in self._plots:
             for subplot in plot:
-                if 'table' in subplot:
-                    subplot['table'] = subplot['yident'][0]
-
-                table = subplot['table']
-
-                if table not in self._nettables:
-                    print("table: " + table)
-                    self._nettables[table] = NetworkTables.getTable(table)
-                    self._tables[table] = {}
-
-            
                 if 'x' in subplot:
                     x = subplot['x']
                 else:
                     x = DEFAULT_TIMESTAMP
 
-                y = subplot['y']
+                for yident in subplot['yidents']:
+                    table = yident[0]
 
-                self._tables[table][x] = []
-                self._tables[table][y] = [] # overwriting is ok if done
+                    if table not in self._nettables:
+                        self._nettables[table] = NetworkTables.getTable(table)
+                        self._tables[table] = {}
+            
+                    y = yident[1]
+
+                    self._tables[table][x] = []
+                    self._tables[table][y] = [] # overwriting is ok if done
 
     @property
     def variables_available(self):
