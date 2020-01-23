@@ -138,21 +138,24 @@ def update_animate(i):
 
             # gather the x axis data
             xdata = plot_entry['data'][plot_entry['x']]
+
+            if 'last' in plot_entry['options']:
+                xdata = xdata[-int(plot_entry['options']['last']):-1]
+
             xlims[0] = min(xdata.min(), xlims[0])
             xlims[1] = max(xdata.max(), xlims[1])
 
             # gather all the associated y axis data
             for y in plot_entry['y']:
-                ydata = plot_entry['data'][plot_entry['y']]
+                ydata = plot_entry['data'][y]
                 if 'last' in plot_entry['options']:
-                    xdata = xdata[-int(plot_entry['options']['last']):-1]
                     ydata = ydata[-int(plot_entry['options']['last']):-1]
-
-                    plot_entry['plot'].set_data(xdata, ydata)
-                    plots_touched.append(plot_entry['plot'])
 
                 ylims[0] = min(ydata.min(), ylims[0])
                 ylims[1] = max(ydata.max(), ylims[1])
+
+                plot_entry['plot'].set_data(xdata, ydata)
+                plots_touched.append(plot_entry['plot'])
 
             if 'x_axis_set' in plot_entry:
                 update_x_limits = False
