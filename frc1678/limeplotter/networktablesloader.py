@@ -123,13 +123,15 @@ class NetworkTablesLoader(loaderbase.LoaderBase):
                 #print(table + "/" + column + " = " + str(value))
         #print(self._tables)
 
-    def gather(self, xident, yident, animate):
+    def gather(self, xident, yidents, animate):
         # animate is pretty much always useless to us since
         # we don't have a "get everything" type of source
         # thus we ignore it and return everything we have always
-        return pd.DataFrame({xident[1]: self._tables[xident[0]][xident[1]],
-                             yident[1]: self._tables[xident[0]][yident[1]]},
-                            columns=[xident[1], yident[1]])
+        datastruct = {xident[1]: self._tables[xident[0]][xident[1]]}
+        for yident in yidents:
+            datastruct[yident[1]] = self._tables[xident[0]][yident[1]]
+        return pd.DataFrame(datastruct,
+                            columns=list(datastruct.keys()))
 
     def debug_print(self):
         for table in self._tables:

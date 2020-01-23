@@ -45,12 +45,15 @@ class LogLoader(loaderbase.LoaderBase):
     def gather_next_datasets(self):
         self._slice_count += self._slice_increment
         
-    def gather(self, xident, yident, just_a_bit = False):
-        if just_a_bit:
-            return self._dataframes[xident[0]][[xident[1], yident[1]]][self._slice_start:self._slice_count]
+    def gather(self, xident, yidents, animate = False):
+        columns = [xident[1]]
+        for column in yidents:
+            columns.append(column[1])
+        if animate:
+            return self._dataframes[xident[0]][columns][self._slice_start:self._slice_count]
             
         # selects the table (xident[0]) with x and y columns (the 1s)
-        return self._dataframes[xident[0]][[xident[1], yident[1]]]
+        return self._dataframes[xident[0]][columns]
 
     def load_file(self, filename, directory = None):
         if directory:

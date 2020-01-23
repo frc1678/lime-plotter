@@ -329,7 +329,7 @@ def create_plot_info(plots, axes):
             # find the x and y data from all the columns in all the data
             # note: we don't deal with duplicates...  we probably should
             # especially because timestamps should all come from the same file
-            debug("checking data for: " + x + ", " + ys)
+            debug("checking data for: " + x + ", " + str(ys))
 
             # find the data columns we need to plot from the correct tables
             time_data = []
@@ -349,7 +349,7 @@ def create_plot_info(plots, axes):
             if len(yidents) is 0:
                 raise ValueError("failed to find y data for " + y)
 
-            debug("plotting " + x + ", " + ys)
+            debug("plotting " + x + ", " + str(ys))
 
             entry['xident'] = xident
             entry['yidents'] = yidents
