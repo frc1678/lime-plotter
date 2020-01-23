@@ -99,11 +99,6 @@ class LogLoader(loaderbase.LoaderBase):
         for thing in things:
             self.load_file_or_directory(thing)
 
-    def find_column_dataframe(self, column_name):
-        for filename in self._dataframes:
-            if column_name in self._dataframes[filename]:
-                return self._dataframes[filename][column_name]
-
     def find_column_identifier(self, column_name):
         for filename in self._dataframes:
             if column_name in self._dataframes[filename]:
@@ -113,14 +108,6 @@ class LogLoader(loaderbase.LoaderBase):
         for filename in self._dataframes:
             if column_name in self._dataframes[filename]:
                 return [filename, matching]
-
-    def find_columns_timestamp_dataframe(self, column_name,
-                                         matching = 'timestamp'):
-        # timestamp is a duplicated column and we need the matching one
-        for filename in self._dataframes:
-            if column_name in self._dataframes[filename]:
-                return self._dataframes[filename][matching]
-        
 
     def clear_data(self):
         # we just restart the starting time notion 
@@ -135,8 +122,3 @@ if __name__ == "__main__":
     ll.load_file_or_directory(thing)
     dfs = ll.dataframes
     print(dfs)
-    print("---")
-    print(ll.find_column_dataframe('profiled_y_goal'))
-    print("timestamp " + str(ll.find_column_dataframe('timestamp')[5]))
-    print("--- dne:")
-    print(ll.find_column_dataframe('aoeaoeuaeouaoeu'))
