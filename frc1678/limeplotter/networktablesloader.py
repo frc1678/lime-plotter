@@ -26,7 +26,7 @@ def parse_args():
     args = parser.parse_args()
     return args
 
-
+DEFAULT_TIMESTAMP='localtime'
 
 class NetworkTablesLoader(loaderbase.LoaderBase):
     def __init__(self, server, plots=[{}]):
@@ -77,7 +77,7 @@ class NetworkTablesLoader(loaderbase.LoaderBase):
                 if 'x' in subplot:
                     x = subplot['x']
                 else:
-                    x = 'timestamp'
+                    x = DEFAULT_TIMESTAMP
 
                 y = subplot['y']
 
@@ -115,7 +115,7 @@ class NetworkTablesLoader(loaderbase.LoaderBase):
         self._time += 1.0
         for table in self._tables:
             for column in self._tables[table]:
-                if column == 'localtime':
+                if column == DEFAULT_TIMESTAMP:
                     value = self._time
                 else:
                     value = self._nettables[table].getNumber(column, 0.0) # default to 0 if no data
@@ -156,7 +156,8 @@ class NetworkTablesLoader(loaderbase.LoaderBase):
                 elif subplot['y'] == column_name:
                     return [subplot['table'], subplot['y']]
 
-    def find_column_timestamp_identifier(self, column_name, matching = 'timestamp'):
+    def find_column_timestamp_identifier(self, column_name,
+                                         matching = DEFAULT_TIMESTAMP):
         results = super().find_column_timestamp_identifier(column_name,
                                                            self.variables_available,
                                                            matching)
@@ -179,6 +180,9 @@ class NetworkTablesLoader(loaderbase.LoaderBase):
             if num != 0:
                 time.sleep(sleep)
             self.gather_next_datasets()
+
+    def get_default_time_column(self):
+        return DEFAULT_TIMESTAMP
 
     def __iter__(self):
         return self

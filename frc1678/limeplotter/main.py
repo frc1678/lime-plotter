@@ -109,7 +109,7 @@ def gather_new_data(plot_info, animate):
     for plot_entry in plot_info:
         # will return a pandas dataframe with x, y
         plot_entry['data'] = plot_entry['data_source'].gather(plot_entry['xident'],
-                                                              plot_entry['yident'],
+                                                              plot_entry['yidents'],
                                                               animate)
 
 def init_animate():
@@ -135,19 +135,24 @@ def update_animate(i):
         update_y_limits = True
         for entry in subplot:
             plot_entry = entry
+
+            # gather the x axis data
             xdata = plot_entry['data'][plot_entry['x']]
-            ydata = plot_entry['data'][plot_entry['y']]
-            if 'last' in plot_entry['options']:
-                xdata = xdata[-int(plot_entry['options']['last']):-1]
-                ydata = ydata[-int(plot_entry['options']['last']):-1]
-
-            plot_entry['plot'].set_data(xdata, ydata)
-            plots_touched.append(plot_entry['plot'])
-
             xlims[0] = min(xdata.min(), xlims[0])
-            ylims[0] = min(ydata.min(), ylims[0])
             xlims[1] = max(xdata.max(), xlims[1])
-            ylims[1] = max(ydata.max(), ylims[1])
+
+            # gather all the associated y axis data
+            for y in plot_entry['y']:
+                ydata = plot_entry['data'][plot_entry['y']]
+                if 'last' in plot_entry['options']:
+                    xdata = xdata[-int(plot_entry['options']['last']):-1]
+                    ydata = ydata[-int(plot_entry['options']['last']):-1]
+
+                    plot_entry['plot'].set_data(xdata, ydata)
+                    plots_touched.append(plot_entry['plot'])
+
+                ylims[0] = min(ydata.min(), ylims[0])
+                ylims[1] = max(ydata.max(), ylims[1])
 
             if 'x_axis_set' in plot_entry:
                 update_x_limits = False
@@ -256,12 +261,16 @@ def create_subplots_from_yaml(yaml_file, default_x='timestamp',
                 x = default_x
             else:
                 x = entry['x']
-            y = entry['y']
+
             table = default_table
             if 'table' in entry:
                 table = entry['table']
+
+            if type(entry['y']) != list:
+                entry['y'] = [entry['y']]
+
             subplot.append({'x': x,
-                            'y': y,
+                            'y': entry['y'],
                             'table': table,
                             'options': entry})
     return subplots
@@ -289,7 +298,7 @@ def create_subplots_from_arguments(arguments, default_x='timestamp',
             if default_table is not None:
                 table=default_table
             subplot.append({'x': x,
-                            'y': y,
+                            'y': [y],
                             'table': table,
                             'options': {}})
     return subplots
@@ -312,30 +321,38 @@ def create_plot_info(plots, axes):
 
     for (axis_index, subplot) in enumerate(plots):
         for entry in subplot:
-            (x,y) = (entry['x'], entry['y'])
+            (x,ys) = (entry['x'], entry['y'])
+
+            if type(ys) != list:
+                ys = [ys]
 
             # find the x and y data from all the columns in all the data
             # note: we don't deal with duplicates...  we probably should
             # especially because timestamps should all come from the same file
-            debug("checking data for: " + x + ", " + y)
+            debug("checking data for: " + x + ", " + ys)
 
             # find the data columns we need to plot from the correct tables
             time_data = []
-            yident = data_source.find_column_identifier(y)
-            if x == 'timestamp':
-                xident = data_source.find_column_timestamp_identifier(y)
+            yidents = []
+            for y in ys:
+                yident = data_source.find_column_identifier(y)
+                yidents.append(yident)
+
+            if x == data_source.get_default_time_column():
+                xident = data_source.find_column_timestamp_identifier(ys[0])
             else:
                 xident = data_source.find_column_identifier(x)
 
             # Yell if we failed to find what they asked for
             if xident is None:
                 raise ValueError("failed to find x data for %s (with y of %s) " % (x,y))
-            if yident is None:
+            if len(yidents) is 0:
                 raise ValueError("failed to find y data for " + y)
-            debug("plotting " + x + ", " + y)
+
+            debug("plotting " + x + ", " + ys)
 
             entry['xident'] = xident
-            entry['yident'] = yident
+            entry['yidents'] = yidents
             entry['axis'] = axes[axis_index]
             entry['data_source'] = data_source # someday we may handle more than one at a time
             if 'fixedAspect' in entry['options'] and entry['options']['fixedAspect']:
@@ -344,17 +361,15 @@ def create_plot_info(plots, axes):
                 entry['axis'].set_title(entry['options']['title'])
             plot_info.append(entry)
 
-def create_matplotlib_plots(plot_info, animate=False, scatter=False,
-                            x_lims=[], y_lims=[]):
+def create_matplotlib_plots(plot_info, animate=False, scatter=False):
     """Create the actual matplotlib subplots, setting them up for animation
     if needed."""
     # actually do the plotting
     for plot_entry in plot_info:
-        (x, y) = (plot_entry['x'], plot_entry['y'])
+        (x, ys) = (plot_entry['x'], plot_entry['y'])
 
         # These will store the x,y data for each plot
         x_data = plot_entry['data'][x]
-        y_data = plot_entry['data'][y]
 
         # set the limits of the graph if defined by the configuration
         if 'xmin' in plot_entry['options'] and 'xmax' in plot_entry['options']:
@@ -373,40 +388,33 @@ def create_matplotlib_plots(plot_info, animate=False, scatter=False,
             plot_entry['axis'].set_ylim([0.0, float(plot_entry['options']['ymax'])])
             plot_entry['y_axis_set'] = True
             
+        for y in ys:
+            y_data = plot_entry['data'][y]
 
-        marker_size=5.0
-        if 'marker_size' in plot_entry['options']:
-            marker_size = float(plot_entry['options']['marker_size'])
-            print("marker size: ------------ " + str(marker_size))
-            
-        if animate:
-            # Animation requires plotting no data, and doing so in the
-            # update_animate routine instead.  So we store the data now
-            # for later use.
-            if scatter:
-                p = plot_entry['axis'].plot([], [], label=y, ls='',
-                                            marker = '.', ms=marker_size)
+            marker_size=5.0
+            if 'marker_size' in plot_entry['options']:
+                marker_size = float(plot_entry['options']['marker_size'])
+                print("marker size: ------------ " + str(marker_size))
+                
+            if animate:
+                # Animation requires plotting no data, and doing so in the
+                # update_animate routine instead.  So we store the data now
+                # for later use.
+                if scatter:
+                    p = plot_entry['axis'].plot([], [], label=y, ls='',
+                                                marker = '.', ms=marker_size)
+                else:
+                    p = plot_entry['axis'].plot([], [], label=y, ms=marker_size)
+
+                plot_entry['plot'] = p[0]
+                animate_plots.append(p[0])
+
             else:
-                p = plot_entry['axis'].plot([], [], label=y, ms=marker_size)
-
-            plot_entry['plot'] = p[0]
-            animate_plots.append(p[0])
-
-            if x_lims[0] is None:
-                x_lims = [x_data.min(), x_data.max()]
-                y_lims = [y_data.min(), y_data.max()]
-            else:
-                x_lims = [min(x_lims[0], x_data.min()),
-                          max(x_lims[1], x_data.max())]
-                y_lims = [min(y_lims[0], y_data.min()),
-                          max(y_lims[1], y_data.max())]
-
-        else:
-            if scatter:
-                plot_entry['axis'].scatter(x_data, y_data, label=y,
-                                           marker = '.', s=marker_size)
-            else:            
-                plot_entry['axis'].plot(x_data, y_data, label=y, ms=marker_size)
+                if scatter:
+                    plot_entry['axis'].scatter(x_data, y_data, label=y,
+                                               marker = '.', s=marker_size)
+                else:            
+                    plot_entry['axis'].plot(x_data, y_data, label=y, ms=marker_size)
     
     
 
@@ -473,11 +481,7 @@ def main():
     # (for animation or network tables this will only gather a small sample)
     gather_new_data(plot_info, args.animate)
 
-    y_lims = [None, None]
-    x_lims = [None, None]
-        
-    create_matplotlib_plots(plot_info, args.animate, args.scatter_plot,
-                            x_lims, y_lims)
+    create_matplotlib_plots(plot_info, args.animate, args.scatter_plot)
 
     # marker_columns will contain a list of column names to used
     # to mark the graphs.  If it contains commas, we'll split it into
@@ -519,10 +523,6 @@ def main():
 
     # general clean-up: tighten up the plots and
     plt.tight_layout()
-
-    # set the limits of the graph
-    # axes[-1].set_xlim(x_lims)
-    # axes[-1].set_ylim(y_lims)
 
     # set font sizes and display size to something reasonable
     fig.set_dpi(150)

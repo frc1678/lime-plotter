@@ -77,3 +77,5 @@ class LoaderBase():
                 # XXX todo:: make sure matching exists before returning it
                 return [table, matching]
 
+    def get_default_time_column(self):
+        return 'timestamp'
