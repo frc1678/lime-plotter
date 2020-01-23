@@ -31,6 +31,6 @@ setuptools.setup(
         'pyyaml',
         'matplotlib',
     ],
-    # test_suite='nose.collector',
-    # tests_require=['nose'],
+    test_suite='nose.collector',
+    tests_require=['nose'],
 )
