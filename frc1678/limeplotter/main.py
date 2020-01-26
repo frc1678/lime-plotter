@@ -605,7 +605,7 @@ def main():
             anim = FuncAnimation(fig, update_animate,
                                  init_func=init_animate,
 #                                 frames=int(len(animate_data[0][0]) / animate_frames),
-                                 interval=args.animation_interval, blit=True)
+                                 interval=args.animation_interval, blit=False)
 
             axnext = plt.axes([0.0, 0.0, 0.05, 0.05])
             button = matplotlib.widgets.Button(axnext, 'clear')
