@@ -350,7 +350,7 @@ def create_plot_info(plots, axes):
 
                         ds = SVGLoader(entry['options']['file'],
                                        transform_to_box=[xmin, ymin,
-                                                         netstatxmax, ymax])
+                                                         xmax, ymax])
                     else:
                             ds = SVGLoader(entry['options']['file'])
 
