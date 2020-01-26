@@ -4,15 +4,21 @@ import pandas as pd
 from xml.dom import minidom
 import svgpath2mpl
 import matplotlib as mpl
+import matplotlib.transforms
 
 class SVGLoader():
     """An (almost) virtual class just to document the required functions
     that must be overridden by child classes to be functional.
     """
 
-    def __init__(self, filename):
-        """save the svg information"""
+    def __init__(self, filename, transform_to_box = None):
+        """Sets the SVG filename and optional transformation box"""
         self._filename = filename
+        self._bbox = transform_to_box
+
+        if self._bbox:
+            b = transform_to_box
+            self._bbox = matplotlib.transforms.Bbox.from_bounds(b[0],b[1],b[2],b[3])
 
     def animate_only(self):
         """Whether or not the data source contains full data, or must be
@@ -24,20 +30,45 @@ class SVGLoader():
         doc = minidom.parse(self._filename)
         path_strings = [path.getAttribute('d') for path
                         in doc.getElementsByTagName('path')]
-        print(path_strings)
         doc.unlink()
 
         # the path_strings will now be an array of strings containing coords
         self._paths = []
         for entry in path_strings:
             path = svgpath2mpl.parse_path(entry)
-            print(type(path))
             self._paths.append(path)
             # this only handles one now...  need multiple names
             
     def draw(self, axis):
+        if self._bbox:
+            # calculate the maximum extents
+            xmin = 1e10
+            xmax = -1e10
+            ymin = 1e10
+            ymax = -1e10
+
+            for path in self._paths:
+                extents = path.get_extents()
+                xmin = min(xmin, extents.x0)
+                xmax = max(xmax, extents.x1)
+                
+                ymin = min(ymin, extents.y0)
+                ymax = max(ymax, extents.y1)
+
+            current_bbox = matplotlib.transforms.Bbox.from_bounds(xmin, ymin, xmax,ymax)
+            xformtounit = matplotlib.transforms.BboxTransformFrom(current_bbox)
+            xformfromunit = matplotlib.transforms.BboxTransformTo(self._bbox)
+
+            both_transforms = xformtounit + xformfromunit
+
         for path in self._paths:
-            patch = mpl.patches.PathPatch(path, facecolor=None)
+            if self._bbox:
+                scaled_path = path.transformed(both_transforms)
+            else:
+                scaled_path = path
+
+            patch = mpl.patches.PathPatch(scaled_path, facecolor=None, alpha=0.2,
+                                          color=None, fill=False)
             patch.set_transform(axis.transData)
             axis.add_patch(patch)
 

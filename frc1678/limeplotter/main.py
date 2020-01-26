@@ -139,6 +139,10 @@ def update_animate(i):
         for entry in subplot:
             plot_entry = entry
 
+            # skip non-data entries like images
+            if 'data' not in plot_entry:
+                continue
+
             # gather the x axis data
             xdata = plot_entry['data'][plot_entry['x']]
 
@@ -334,7 +338,8 @@ def create_plot_info(plots, axes):
 
             if 'data_source' in entry['options']:
                 if entry['options']['data_source'] == 'svg':
-                    ds = SVGLoader(entry['options']['file'])
+                    ds = SVGLoader(entry['options']['file'],
+                                   transform_to_box=[0,0,8,4])
                     ds.open()
 
 
