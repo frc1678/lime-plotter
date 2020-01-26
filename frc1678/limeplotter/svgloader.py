@@ -11,14 +11,19 @@ class SVGLoader():
     that must be overridden by child classes to be functional.
     """
 
-    def __init__(self, filename, transform_to_box = None):
+    def __init__(self, filename, config = {}):
         """Sets the SVG filename and optional transformation box"""
         self._filename = filename
-        self._bbox = transform_to_box
 
-        if self._bbox:
-            b = transform_to_box
+        if 'transform_to_box' in config:
+            b = config['transform_to_box']
             self._bbox = matplotlib.transforms.Bbox.from_bounds(b[0],b[1],b[2],b[3])
+
+        self._config = config
+        if 'alpha' in config:
+            self._alpha = float(config['alpha'])
+        else:
+            self._alpha = 0.2
 
     def animate_only(self):
         """Whether or not the data source contains full data, or must be
@@ -67,7 +72,7 @@ class SVGLoader():
             else:
                 scaled_path = path
 
-            patch = mpl.patches.PathPatch(scaled_path, facecolor=None, alpha=0.2,
+            patch = mpl.patches.PathPatch(scaled_path, facecolor=None, alpha=self._alpha,
                                           color=None, fill=False)
             patch.set_transform(axis.transData)
             axis.add_patch(patch)

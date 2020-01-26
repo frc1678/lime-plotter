@@ -345,6 +345,8 @@ def create_plot_info(plots, axes):
             if 'data_source' in entry['options']:
                 if entry['options']['data_source'] == 'svg':
                     # determine if we should scale to a size
+
+                    config = {}
                     if 'ymax' in entry['options']:
                         (xmin, ymin) = (0,0)
                         xmax = entry['options']['xmax']
@@ -354,12 +356,14 @@ def create_plot_info(plots, axes):
                         if 'ymin' in entry['options']:
                             ymin = entry['options'][ymin]
 
-                        ds = SVGLoader(entry['options']['file'],
-                                       transform_to_box=[xmin, ymin,
-                                                         xmax, ymax])
-                    else:
-                            ds = SVGLoader(entry['options']['file'])
+                        config['transform_to_box'] = [xmin, ymin, xmax, ymax]
 
+                    if 'alpha' in entry['options']:
+                        config['alpha'] = entry['options']['alpha']
+
+                    # create the drawer
+                    ds = SVGLoader(entry['options']['file'], config)
+                    
                     # have the class do final touches
                     ds.open()
 
@@ -424,7 +428,7 @@ def create_matplotlib_plots(plot_info, animate=False, scatter=False):
 
         # These will store the x,y data for each plot
         x_data = plot_entry['data'][x]
-        if plot_entry['options']['xoff']:
+        if 'xoff' in plot_entry['options']:
             x_data = x_data + float(plot_entry['options']['xoff'])
 
         # set the limits of the graph if defined by the configuration
@@ -446,7 +450,7 @@ def create_matplotlib_plots(plot_info, animate=False, scatter=False):
             
         for y in ys:
             y_data = plot_entry['data'][y]
-            if plot_entry['options']['yoff']:
+            if 'yoff' in plot_entry['options']:
                 y_data = y_data + float(plot_entry['options']['yoff'])
 
             marker_size=5.0
