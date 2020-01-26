@@ -16,6 +16,7 @@ from matplotlib.animation import FuncAnimation
 
 from frc1678.limeplotter.logloader import LogLoader
 from frc1678.limeplotter.networktablesloader import NetworkTablesLoader
+from frc1678.limeplotter.svgloader import SVGLoader
 
 import argparse
 import sys
@@ -28,7 +29,8 @@ animate_frames = 0
 plot_pair_data = {}
 plot_info = None
 anim = None
-data_source = None
+default_data_source = None
+data_sources = []
 pause_button = None
 savde_plots = None
 
@@ -105,12 +107,13 @@ def debug(line):
 
 def gather_new_data(plot_info, animate):
     """Gather's the next round of data to plot when animating"""
-    data_source.gather_next_datasets()
-    for plot_entry in plot_info:
-        # will return a pandas dataframe with x, y
-        plot_entry['data'] = plot_entry['data_source'].gather(plot_entry['xident'],
-                                                              plot_entry['yidents'],
-                                                              animate)
+    for data_source in data_sources:
+        data_source.gather_next_datasets()
+        for plot_entry in plot_info:
+            # will return a pandas dataframe with x, y
+            plot_entry['data'] = plot_entry['data_source'].gather(plot_entry['xident'],
+                                                                  plot_entry['yidents'],
+                                                                  animate)
 
 def init_animate():
     """Initialize the plots to nothing.  this allows animation looping so
@@ -180,7 +183,8 @@ def update_animate(i):
 
 def clear_data(event):
     """Called on a button push for live animations to clear the current plots"""
-    data_source.clear_data()
+    for data_source in data_sources:
+        data_source.clear_data()
 
 paused = False
 def pause(event):
@@ -318,13 +322,35 @@ def create_plot_info(plots, axes):
       - put the axis for it in the data entry
       - put any other needed data into the data entry as well
     """
-    global plot_info, saved_plots
+    global plot_info, saved_plots, data_sources
     plot_info = []
     saved_plots = plots
 
     for (axis_index, subplot) in enumerate(plots):
         for entry in subplot:
             (x,ys) = (entry['x'], entry['y'])
+
+            entry['axis'] = axes[axis_index]
+
+            if 'data_source' in entry['options']:
+                if entry['options']['data_source'] == 'svg':
+                    ds = SVGLoader(entry['options']['file'])
+                    ds.open()
+
+
+                    entry['data_source'] = ds
+                    entry['x'] = ds.get_default_time_column()
+                    entry['y'] = ['svgy']
+                    ys = entry['y']
+
+                    ds.draw(entry['axis'])
+                    # data_sources.append(entry['data_source'])
+                    continue
+            else:
+                # use the default data source
+                entry['data_source'] = default_data_source
+
+            source = entry['data_source']
 
             if type(ys) != list:
                 ys = [ys]
@@ -338,13 +364,13 @@ def create_plot_info(plots, axes):
             time_data = []
             yidents = []
             for y in ys:
-                yident = data_source.find_column_identifier(y)
+                yident = source.find_column_identifier(y)
                 yidents.append(yident)
 
-            if x == data_source.get_default_time_column():
-                xident = data_source.find_column_timestamp_identifier(ys[0])
+            if x == source.get_default_time_column():
+                xident = source.find_column_timestamp_identifier(ys[0])
             else:
-                xident = data_source.find_column_identifier(x)
+                xident = source.find_column_identifier(x)
 
             # Yell if we failed to find what they asked for
             if xident is None:
@@ -356,8 +382,7 @@ def create_plot_info(plots, axes):
 
             entry['xident'] = xident
             entry['yidents'] = yidents
-            entry['axis'] = axes[axis_index]
-            entry['data_source'] = data_source # someday we may handle more than one at a time
+
             if 'fixedAspect' in entry['options'] and entry['options']['fixedAspect']:
                 entry['axis'].set_aspect('equal')
             if 'title' in entry['options']:
@@ -425,7 +450,8 @@ def main():
     """The main routine that opens a data source, initializes it, creates
     the plots structures within matplotlib and displays/animates them."""
     global plot_pair_data
-    global data_source
+    global default_data_source
+    global data_sources
     args = parse_args()
 
     if args.output_file:
@@ -443,24 +469,24 @@ def main():
 
     # Create the data source object where we'll extract data from
     if args.log_files:
-        data_source = LogLoader(animation_frames=args.animation_frames,
-                                sources=args.log_files)
+        default_data_source = LogLoader(animation_frames=args.animation_frames,
+                                        sources=args.log_files)
 
     elif args.network_server:
-        data_source = NetworkTablesLoader(args.network_server, plots)
+        default_data_source = NetworkTablesLoader(args.network_server, plots)
         
     else:
         sys.stderr.write("either a log file list (-L) or a network server (-N) is needed")
         exit(1)
 
     # see if the data source is only animatable (ie, live data)
-    if data_source.animate_only():
+    if default_data_source.animate_only():
         args.animate = True
         
     # just generate a list of variables if requested
     if args.list_variables:
         # Not all data sources support this
-        data = data_source.variables_available
+        data = default_data_source.variables_available
         for source in data:
             print(source + ":")
             for column in data[source]:
@@ -468,7 +494,9 @@ def main():
         exit()
 
     # tell the datasource to initialize.
-    data_source.open()
+    default_data_source.open()
+
+    data_sources.append(default_data_source)
         
     # How are we plotting them -- create the matplotlib axes 
 
@@ -538,7 +566,6 @@ def main():
     else:
         # display the results on the screen...
         if args.animate:
-            print(animate_plots)
             # ...possibly using animation
             global anim
             anim = FuncAnimation(fig, update_animate,

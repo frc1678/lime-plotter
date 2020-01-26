@@ -19,28 +19,6 @@ class LoaderBase():
         """Opens whatever resources are needed by the child classes."""
         pass
 
-    def find_column_identifier(self, column_name):
-        """This should return a column identifier for how to find a column in
-        the loader's stored data.  This may be, for example, a double array
-        indicating the table and column where the data is stored than then can
-        be used as an index into a dictionary."""
-        pass
-    
-    def find_column_timestamp_identifier(self, column_name,
-                                         matching='timestamp'):
-        """This should return a column identifier for how to find a column in
-        the loader's stored data given a matching identifier.  The
-        difference between this an the find_column_identifier()
-        function is that this should return a reference to the
-        matching identifier instead of the column_name itself.  This
-        is necessary to be called for, typically, X data names that
-        may be repeated across tables such as 'timestamp' columns.  In
-        these situations, the X column MUST match the Y column so this
-        function is used to find the right X matching data for a given
-        Y column_name.
-        """
-        pass
-
     def gather_next_datasets(self):
         """This is called once per animation loop to collect all necessary
         data from a datasource."""
@@ -58,6 +36,9 @@ class LoaderBase():
         """This is called to reset a graph during animations; it should clear
         out all past stored data."""
         pass
+
+    def get_default_time_column(self):
+        return 'timestamp'
 
     def find_column_identifier(self, column_name, table_info):
         "Finds an column name in a nested structure of table/column_names "
@@ -77,5 +58,4 @@ class LoaderBase():
                 # XXX todo:: make sure matching exists before returning it
                 return [table, matching]
 
-    def get_default_time_column(self):
-        return 'timestamp'
+
