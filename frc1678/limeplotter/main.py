@@ -145,6 +145,8 @@ def update_animate(i):
 
             # gather the x axis data
             xdata = plot_entry['data'][plot_entry['x']]
+            if 'xoff' in plot_entry['options']:
+                xdata = xdata + float(plot_entry['options']['xoff'])
 
             if 'last' in plot_entry['options']:
                 xdata = xdata[-int(plot_entry['options']['last']):-1]
@@ -158,6 +160,9 @@ def update_animate(i):
                 if 'last' in plot_entry['options']:
                     ydata = ydata[-int(plot_entry['options']['last']):-1]
 
+                if 'yoff' in plot_entry['options']:
+                    ydata = ydata + float(plot_entry['options']['yoff'])
+
                 ylims[0] = min(ydata.min(), ylims[0])
                 ylims[1] = max(ydata.max(), ylims[1])
 
@@ -169,6 +174,7 @@ def update_animate(i):
 
             if 'y_axis_set' in plot_entry:
                 update_y_limits = False
+
 
         # steals last plot from loop
         if update_x_limits:
@@ -418,6 +424,8 @@ def create_matplotlib_plots(plot_info, animate=False, scatter=False):
 
         # These will store the x,y data for each plot
         x_data = plot_entry['data'][x]
+        if plot_entry['options']['xoff']:
+            x_data = x_data + float(plot_entry['options']['xoff'])
 
         # set the limits of the graph if defined by the configuration
         if 'xmin' in plot_entry['options'] and 'xmax' in plot_entry['options']:
@@ -438,6 +446,8 @@ def create_matplotlib_plots(plot_info, animate=False, scatter=False):
             
         for y in ys:
             y_data = plot_entry['data'][y]
+            if plot_entry['options']['yoff']:
+                y_data = y_data + float(plot_entry['options']['yoff'])
 
             marker_size=5.0
             if 'marker_size' in plot_entry['options']:
