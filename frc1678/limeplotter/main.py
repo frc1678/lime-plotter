@@ -338,8 +338,23 @@ def create_plot_info(plots, axes):
 
             if 'data_source' in entry['options']:
                 if entry['options']['data_source'] == 'svg':
-                    ds = SVGLoader(entry['options']['file'],
-                                   transform_to_box=[0,0,8,4])
+                    # determine if we should scale to a size
+                    if 'ymax' in entry['options']:
+                        (xmin, ymin) = (0,0)
+                        xmax = entry['options']['xmax']
+                        ymax = entry['options']['ymax']
+                        if 'xmin' in entry['options']:
+                            xmin = entry['options'][xmin]
+                        if 'ymin' in entry['options']:
+                            ymin = entry['options'][ymin]
+
+                        ds = SVGLoader(entry['options']['file'],
+                                       transform_to_box=[xmin, ymin,
+                                                         netstatxmax, ymax])
+                    else:
+                            ds = SVGLoader(entry['options']['file'])
+
+                    # have the class do final touches
                     ds.open()
 
 
