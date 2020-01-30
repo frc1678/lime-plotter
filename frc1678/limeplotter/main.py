@@ -43,6 +43,9 @@ def parse_args():
     parser.add_argument("-y", "--yaml-plot", default=None, type=argparse.FileType("r"),
                         help="A YAML file with plotting specifications")
 
+    parser.add_argument("-Y", "--plot-tokens", default=None, type=str, nargs="*",
+                        help="A list of plot tokens to ONLY load from the yaml file")
+
     parser.add_argument("-s", "--scatter-plot", action="store_true",
                         help="Plot a scatter plot instead of a line plot")
 
@@ -257,13 +260,16 @@ def display_time_info(event):
     plt.show()
 
 def create_subplots_from_yaml(yaml_file, default_x='timestamp',
-                              default_table=None):
+                              default_table=None, plot_tokens=None):
     """Creates an array of subplots from a yaml specification file"""
     contents = yaml.load(yaml_file, Loader=yaml.FullLoader)
 
     # create an array of all the plots from the hierarchical structure
     subplots = []
     for key in contents['plots']:
+        if plot_tokens and key not in plot_tokens:
+            continue
+
         subplot = []
         subplots.append(subplot)
 
@@ -497,7 +503,8 @@ def main():
     elif args.plot_pairs:
         plots = create_subplots_from_arguments(args.plot_pairs)
     else:
-        plots = create_subplots_from_yaml(args.yaml_plot, default_x=args.default_x)
+        plots = create_subplots_from_yaml(args.yaml_plot, default_x=args.default_x,
+                                          plot_tokens=args.plot_tokens)
 
     # What are we plotting?  -- open the stream
 
