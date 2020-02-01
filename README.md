@@ -115,6 +115,10 @@ Can be done with a 'data_source' entry inside a plot:
         ymax: 26.5833333333
         alpha: .5
 
+Here's a copy of the [FRC 2020 map] as a plottable SVG:
+
+[FRC 2020 map]: ./images/2020map.svg
+
 # Animation
 
 When plotting from *networktables* or with the *-a* switch applied,
