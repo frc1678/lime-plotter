@@ -12,17 +12,12 @@ networktables server (IE, from a robot over its wireless network).
 Install any needed modules and the lime-plotter itself:
 
 ```
-pip3 -r requirements.txt
-python3 setup.py build
-python3 setup.py install
+pip3 install --user --upgrade frc1678-lime-plotter
 ```
 
-You may wish to run the install pass with the *--user* switch to
-install to your personal space.
-
-Plots are specified either via complex command line arguments with the
-*-p* switch, or via easier-to-read-and-write YAML configuration files
-(see the example below).
+Things to plot are specified either via complex command line arguments
+with the *-p* switch, or via **easier-to-read-and-write YAML
+configuration files** (see the example below).
 
 ## Reading from logs
 
@@ -40,13 +35,13 @@ To read from a network table, use the *-N* switch to specify the
 network address to connect to, and optionally a *-T* switch to specify
 a default table to read from.
 
-    lime-plotter.py -N 10.16.78.1 -t nettable
+    lime-plotter.py -N 10.0.0.1 -t nettable
 
 ## Listing available tables / columns
 
 This works for both NetworkTables and CSV logs:
 
-    lime-plotter.py -N 10.16.78.1 -l
+    lime-plotter.py -N 10.0.0.1 -l
 
 # Example configuration
 
@@ -106,6 +101,19 @@ And run with
 Will produce a graph similar to the following:
 
 ![Multiple Graphs](./images/multiple.png)
+
+## Including an svg image (such as a field map)
+
+Can be done with a 'data_source' entry inside a plot:
+
+    plots:
+      - data_source: svg
+        file: 2020map.svg
+        y: bogus
+        x: bogus
+        xmax: 54.0833333333 # scale svg to these dimensions
+        ymax: 26.5833333333
+        alpha: .5
 
 # Animation
 
