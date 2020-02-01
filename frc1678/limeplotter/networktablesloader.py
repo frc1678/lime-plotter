@@ -63,6 +63,9 @@ class NetworkTablesLoader(loaderbase.LoaderBase):
         self._tables = {}
         for plot in self._plots:
             for subplot in plot:
+                if subplot['data_source'] != self:
+                    continue # not it!
+
                 if 'x' in subplot:
                     x = subplot['x']
                 else:
