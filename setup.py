@@ -30,6 +30,7 @@ setuptools.setup(
         'pandas',
         'pyyaml',
         'matplotlib',
+        'svgpath2mpl',
     ],
     test_suite='nose.collector',
     tests_require=['nose'],
