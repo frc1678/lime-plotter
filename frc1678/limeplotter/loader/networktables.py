@@ -7,7 +7,7 @@ import argparse
 import sys
 import pandas as pd
 
-from . import loaderbase
+from frc1678.limeplotter.loader import LoaderBase
 
 def parse_args():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -28,7 +28,7 @@ def parse_args():
 
 DEFAULT_TIMESTAMP='localtime'
 
-class NetworkTablesLoader(loaderbase.LoaderBase):
+class NetworkTablesLoader(LoaderBase):
     def __init__(self, server, plots=[{}]):
         self._server = server
         self._plots = plots

@@ -3,9 +3,9 @@ import pandas as pd
 import os
 import os.path
 
-from . import loaderbase
+from frc1678.limeplotter.loader import LoaderBase
 
-class LogLoader(loaderbase.LoaderBase):
+class LogLoader(LoaderBase):
     def __init__(self, directory = None, animation_frames=1,
                  sources=None):
         self._directory = directory

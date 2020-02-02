@@ -14,9 +14,9 @@ import matplotlib.pyplot as plt
 
 from matplotlib.animation import FuncAnimation
 
-from frc1678.limeplotter.logloader import LogLoader
-from frc1678.limeplotter.networktablesloader import NetworkTablesLoader
-from frc1678.limeplotter.svgloader import SVGLoader
+from frc1678.limeplotter.loader.log import LogLoader
+from frc1678.limeplotter.loader.networktables import NetworkTablesLoader
+from frc1678.limeplotter.loader.svg import SVGLoader
 
 import argparse
 import sys
