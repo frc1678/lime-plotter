@@ -111,8 +111,8 @@ Can be done with a 'data_source' entry inside a plot:
         file: 2020map.svg
         y: bogus
         x: bogus
-        xmax: 54.0833333333 # scale svg to these dimensions
-        ymax: 26.5833333333
+        xmax: 629.25 # scale svg to these dimensions
+        ymax: 323.25 # (2020 dimensions in inches)
         alpha: .5
 
 Here's a copy of the [FRC 2020 map] as a plottable SVG:
