@@ -382,6 +382,15 @@ def create_plot_info(plots, axes):
                     ds.draw(entry['axis'])
                     # data_sources.append(entry['data_source'])
                     continue
+
+                elif entry['options']['data_source'] == 'log':
+                    print(entry['options']['file'])
+                    log_source = LogLoader(sources=[str(entry['options']['file'])])
+                    
+                    entry['data_source'] = log_source
+                    log_source.open()
+                    data_sources.append(log_source)
+                    
             else:
                 # use the default data source
                 entry['data_source'] = default_data_source
