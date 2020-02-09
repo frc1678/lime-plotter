@@ -1,5 +1,6 @@
 """An entirely virtual LoaderBase class needed just for documentation"""
 
+import os
 import pandas as pd
 from xml.dom import minidom
 import svgpath2mpl
@@ -24,6 +25,14 @@ class SVGLoader():
             self._alpha = float(config['alpha'])
         else:
             self._alpha = 0.2
+
+        if not os.path.exists(self._filename):
+            # see if we can find a built in version
+            this_dir, file_name = os.path.split(__file__)
+            new_file = os.path.join(this_dir, "svgs", self._filename)
+            if not os.path.exists(new_file):
+                raise ValueError("Failed to find svg file: " + self._filename)
+            self._filename = new_file
 
     def animate_only(self):
         """Whether or not the data source contains full data, or must be
