@@ -13,6 +13,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 from matplotlib.animation import FuncAnimation
+from matplotlib.path import Path
 
 from frc1678.limeplotter.loader.log import LogLoader
 from frc1678.limeplotter.loader.networktables import NetworkTablesLoader
@@ -192,7 +193,69 @@ def update_animate(i):
 
         #plot_entry['axis'].get_yaxis().set_ylim(ylims)
 
+    # for ds in data_sources:
+    #     ds.debug_print()
+
     return plots_touched
+
+def freeze(event):
+    print("freezing")
+    for (axis_index, subplot) in enumerate(saved_plots):
+        for entry in subplot:
+            plot_entry = entry
+
+            # skip non-data entries like images
+            if 'data' not in plot_entry:
+                continue
+
+            # gather the x axis data
+            xdata = plot_entry['data'][plot_entry['x']]
+            if 'xoff' in plot_entry['options']:
+                xdata = xdata + float(plot_entry['options']['xoff'])
+
+            if 'last' in plot_entry['options']:
+                xdata = xdata[-int(plot_entry['options']['last']):-1]
+
+            # gather all the associated y axis data
+            for y in plot_entry['y']:
+                ydata = plot_entry['data'][y]
+                if 'last' in plot_entry['options']:
+                    ydata = ydata[-int(plot_entry['options']['last']):-1]
+
+                if 'yoff' in plot_entry['options']:
+                    ydata = ydata + float(plot_entry['options']['yoff'])
+
+                verts = []
+                codes = [Path.MOVETO]
+                for x, y in zip(xdata,ydata):
+                    verts.append((x,y))
+                    codes.append(Path.LINETO)
+
+                codes = codes[:-2]
+                path = Path(verts)
+
+                patch = matplotlib.patches.PathPatch(path, facecolor="orange",
+                                                     color="orange", fill=False,
+                                                     linestyle=":")
+                axis = plot_entry['axis']
+                patch.set_transform(axis.transData)
+                axis.add_patch(patch)
+                print("added:" + str(plot_entry['y']))
+
+
+
+            if 'x_axis_set' in plot_entry:
+                update_x_limits = False
+
+            if 'y_axis_set' in plot_entry:
+                update_y_limits = False
+
+
+
+    for data_source in data_sources:
+        data_source.clear_data()
+    
+    clear_data(event)
 
 def clear_data(event):
     """Called on a button push for live animations to clear the current plots"""
@@ -631,6 +694,11 @@ def main():
             global pause_button
             pause_button = matplotlib.widgets.Button(axnext, 'pause')
             pause_button.on_clicked(pause)
+
+            axnext = plt.axes([0.10, 0.0, 0.05, 0.05])
+            global freeze_button
+            freeze_button = matplotlib.widgets.Button(axnext, 'freeze')
+            freeze_button.on_clicked(freeze)
 
         plt.show()
 
