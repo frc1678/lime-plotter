@@ -6,6 +6,7 @@ from xml.dom import minidom
 import svgpath2mpl
 import matplotlib as mpl
 import matplotlib.transforms
+import pkgutil
 
 class SVGLoader():
     """An (almost) virtual class just to document the required functions
@@ -26,14 +27,6 @@ class SVGLoader():
         else:
             self._alpha = 0.2
 
-        if not os.path.exists(self._filename):
-            # see if we can find a built in version
-            this_dir, file_name = os.path.split(__file__)
-            new_file = os.path.join(this_dir, "svgs", self._filename)
-            if not os.path.exists(new_file):
-                raise ValueError("Failed to find svg file: " + self._filename)
-            self._filename = new_file
-
     def animate_only(self):
         """Whether or not the data source contains full data, or must be
         animated over time."""
@@ -41,7 +34,20 @@ class SVGLoader():
     
     def open(self):
         # read the sveg file
-        doc = minidom.parse(self._filename)
+
+        if not os.path.exists(self._filename):
+            # see if we can find a built in version
+            import pdb ; pdb.set_trace()
+            self._filename = pkgutil.get_data('frc1678.limeplotter.loader', 'svgs/' + self._filename)
+            
+
+        if os.path.exists(self._filename):
+            doc = minidom.parse(self._filename)
+        else:
+            # see if we can find a built in version
+            local_content = pkgutil.get_data('frc1678.limeplotter.loader', 'svgs/' + self._filename)
+            doc = minidom.parseString(local_content)
+
         path_strings = [path.getAttribute('d') for path
                         in doc.getElementsByTagName('path')]
         doc.unlink()
