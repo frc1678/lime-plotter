@@ -104,6 +104,10 @@ Will produce a graph similar to the following:
 
 ![Multiple Graphs](./images/multiple.png)
 
+Note: you can use the -Y flag to plot only a selected set of sections
+of the YAML file.  EG `lime-plotter.py -L log -y multiple.yml -Y velocity`
+will plot only the first graph.
+
 ## Including an svg image (such as a field map)
 
 Can be done with a 'data_source' entry inside a plot:
