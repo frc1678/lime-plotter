@@ -35,12 +35,6 @@ class SVGLoader():
     def open(self):
         # read the sveg file
 
-        if not os.path.exists(self._filename):
-            # see if we can find a built in version
-            import pdb ; pdb.set_trace()
-            self._filename = pkgutil.get_data('frc1678.limeplotter.loader', 'svgs/' + self._filename)
-            
-
         if os.path.exists(self._filename):
             doc = minidom.parse(self._filename)
         else:
