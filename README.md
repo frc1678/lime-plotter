@@ -115,8 +115,6 @@ Can be done with a 'data_source' entry inside a plot:
     plots:
       - data_source: svg
         file: 2020map.svg
-        y: bogus
-        x: bogus
         xmax: 629.25 # scale svg to these dimensions
         ymax: 323.25 # (2020 dimensions in inches)
         alpha: .5
