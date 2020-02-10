@@ -62,6 +62,7 @@ class LogLoader(LoaderBase):
             path = filename
 
         df = pd.read_csv(path)
+        #df = df.loc[(df != 0).all(axis=1), :]
 
         self._csvs.append(path)
         self._dataframes[path] = df

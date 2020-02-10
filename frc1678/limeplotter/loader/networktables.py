@@ -29,11 +29,12 @@ def parse_args():
 DEFAULT_TIMESTAMP='localtime'
 
 class NetworkTablesLoader(LoaderBase):
-    def __init__(self, server, plots=[{}]):
+    def __init__(self, server, plots=[{}], ignore_zeros=True):
         self._server = server
         self._plots = plots
         self._time = 0.0
         self._network_table_list = None
+        self._ignore_zeros = ignore_zeros
     
     def animate_only(self):
         """This loader only loads data over time, and thus must be
@@ -129,8 +130,12 @@ class NetworkTablesLoader(LoaderBase):
         datastruct = {xident[1]: self._tables[xident[0]][xident[1]]}
         for yident in yidents:
             datastruct[yident[1]] = self._tables[xident[0]][yident[1]]
-        return pd.DataFrame(datastruct,
-                            columns=list(datastruct.keys()))
+        df = pd.DataFrame(datastruct,
+                          columns=list(datastruct.keys()))
+        if self._ignore_zeros:
+            df = df.loc[(df != 0).all(axis=1), :]
+            #df[df != 0.].dropna(axis=1)
+        return df
 
     def debug_print(self):
         for table in self._tables:
