@@ -83,7 +83,9 @@ Might produce the following graph:
 ## Example multiple graphs
 
 To display multiple plots, configuration files can contain multiple
-named entries:
+named entries.  Note that in this case the tool will try and find the
+right table for you; I.E. you don't need to specify the table or even
+x column if you don't wish.
 
     plots:
       velocity:
@@ -118,6 +120,16 @@ Can be done with a 'data_source' entry inside a plot:
 Here's a copy of the [FRC 2020 map] as a plottable SVG:
 
 [FRC 2020 map]: ./images/2020map.svg
+
+### Including built in maps
+
+The following map files can be specified without actually having a
+file present, as they're included in the package data:
+
+- 2019map.svg
+- 2020map.svg      (just the playing field)
+- 2020map-rev.svg  (reverses the playing field top to bottom)
+- 2020map-full.svg (the full field with human areas)
 
 # Animation
 
