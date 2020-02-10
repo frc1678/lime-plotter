@@ -352,7 +352,9 @@ def create_subplots_from_yaml(yaml_file, default_x='timestamp',
             if 'table' in entry:
                 table = entry['table']
 
-            if type(entry['y']) != list:
+            if 'y' not in entry: # e.g., svgs don't need a y
+                entry['y'] = []
+            elif type(entry['y']) != list:
                 entry['y'] = [entry['y']]
 
             subplot.append({'x': x,
