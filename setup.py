@@ -34,4 +34,8 @@ setuptools.setup(
     ],
     test_suite='nose.collector',
     tests_require=['nose'],
+    package_data = { 'frc1678.limeplotter.loader': ['svgs/2020map.svg',
+                                                    'svgs/2020map-rev.svg',
+                                                    'svgs/2020map-full.svg',
+                                                    'svgs/2019map.svg'] },
 )
