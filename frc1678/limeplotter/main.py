@@ -17,6 +17,7 @@ from matplotlib.animation import FuncAnimation
 from matplotlib.path import Path
 
 from frc1678.limeplotter.loader.log import LogLoader
+from frc1678.limeplotter.loader.timermarks import TimerMarks
 from frc1678.limeplotter.loader.networktables import NetworkTablesLoader
 from frc1678.limeplotter.loader.svg import SVGLoader
 
@@ -458,13 +459,17 @@ def create_plot_info(plots, axes):
                     continue
 
                 elif entry['options']['data_source'] == 'log':
-                    print(entry['options']['file'])
                     log_source = LogLoader(sources=[str(entry['options']['file'])])
                     
                     entry['data_source'] = log_source
                     log_source.open()
                     data_sources.append(log_source)
-                    
+                elif entry['options']['data_source'] == 'timer':
+                    timer_source = TimerMarks(entry['options'],
+                                              default_data_source)
+                    entry['data_source'] = timer_source
+                    timer_source.open()
+                    data_sources.append(timer_source)
             else:
                 # use the default data source
                 entry['data_source'] = default_data_source
