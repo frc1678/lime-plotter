@@ -7,6 +7,7 @@ For usage information, see the webpage at: https://github.com/frc1678/lime-plott
 Author: Wes Hardaker
 """
 
+import time
 import pandas as pd
 import yaml
 import matplotlib
@@ -259,9 +260,10 @@ def freeze(event):
     clear_data(event)
 
 def save_data(event):
+    now = time.ctime()
     for count, plot_entry in enumerate(plot_info):
         # will return a pandas dataframe with x, y
-        plot_entry['data'].to_csv(str(count) + ".csv")
+        plot_entry['data'].to_csv(now + "-" + str(count) + ".csv")
     
 
 def clear_data(event):
