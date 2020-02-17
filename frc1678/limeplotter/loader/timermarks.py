@@ -21,8 +21,6 @@ class TimerMarks(LoaderBase):
     def open(self):
         self._xident = self._data_source.find_column_identifier(self._x)
         self._yident = self._data_source.find_column_identifier(self._y)
-        print(self._xident)
-        print(self._yident)
 
     @property
     def dataframes(self):
@@ -39,7 +37,6 @@ class TimerMarks(LoaderBase):
             self._data[self._x].append(float(dfs[self._x][-1:]))
             self._data[self._y].append(float(dfs[self._y][-1:]))
 
-        print("returning:" + str(self._data))
         return pd.DataFrame(self._data,
                             columns=[self._x, self._y])
 
