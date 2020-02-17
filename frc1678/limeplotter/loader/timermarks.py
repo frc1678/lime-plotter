@@ -11,14 +11,16 @@ class TimerMarks(LoaderBase):
         self._config = config
         self._data_source = data_source
         self._dataframes = None
-        self._data = {config['x']: [],
-                      config['y'][0]: [],}
+        self._x = config['x']
+        self._y = config['y'][0] # we only support a single y point
+        self._data = {self._x: [],
+                      self._y: [],}
         self._next_mark = 0
         self._delta = 120
 
     def open(self):
-        self._xident = self._data_source.find_column_identifier(self._config['x'])
-        self._yident = self._data_source.find_column_identifier(self._config['y'][0])
+        self._xident = self._data_source.find_column_identifier(self._x)
+        self._yident = self._data_source.find_column_identifier(self._y)
         print(self._xident)
         print(self._yident)
 
@@ -34,12 +36,12 @@ class TimerMarks(LoaderBase):
         if now > self._next_mark:
             self._next_mark = self._next_mark + self._delta
             dfs = self._data_source.gather(self._xident, [self._yident], animate)
-            self._data[self._config['x']].append(float(dfs[self._config['x']][-1:]))
-            self._data[self._config['y'][0]].append(float(dfs[self._config['y'][0]][-1:]))
+            self._data[self._x].append(float(dfs[self._x][-1:]))
+            self._data[self._y].append(float(dfs[self._y][-1:]))
 
         print("returning:" + str(self._data))
         return pd.DataFrame(self._data,
-                            columns=[self._config['x'], self._config['y'][0]])
+                            columns=[self._x, self._y])
 
     def load_file(self, filename, directory = None):
         if directory:
