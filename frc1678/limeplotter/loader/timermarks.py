@@ -36,8 +36,15 @@ class TimerMarks(LoaderBase):
         if now > self._next_mark:
             self._next_mark = self._next_mark + self._delta
             dfs = self._data_source.gather(self._xident, [self._yident], animate)
-            self._data[self._x].append(float(dfs[self._x][-1:]))
-            self._data[self._y].append(float(dfs[self._y][-1:]))
+            x = float(dfs[self._x][-1:])
+            y = float(dfs[self._y][-1:])
+
+            # if we're on the 0 line, the robot is off
+            if x == 0.0 or y == 0.0:
+                self._next_mark = 0
+                return
+            self._data[self._x].append(x)
+            self._data[self._y].append(y)
 
         return pd.DataFrame(self._data,
                             columns=[self._x, self._y])
