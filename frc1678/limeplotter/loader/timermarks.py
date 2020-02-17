@@ -16,7 +16,9 @@ class TimerMarks(LoaderBase):
         self._data = {self._x: [],
                       self._y: [],}
         self._next_mark = 0
-        self._delta = 120
+        self._delta = 60
+        if 'delta' in config:
+            self._delta = config['delta']
 
     def open(self):
         self._xident = self._data_source.find_column_identifier(self._x)
