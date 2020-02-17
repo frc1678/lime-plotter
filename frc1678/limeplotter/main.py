@@ -116,11 +116,11 @@ def gather_new_data(plot_info, animate):
     """Gather's the next round of data to plot when animating"""
     for data_source in data_sources:
         data_source.gather_next_datasets()
-        for plot_entry in plot_info:
-            # will return a pandas dataframe with x, y
-            plot_entry['data'] = plot_entry['data_source'].gather(plot_entry['xident'],
-                                                                  plot_entry['yidents'],
-                                                                  animate)
+    for plot_entry in plot_info:
+        # will return a pandas dataframe with x, y
+        plot_entry['data'] = plot_entry['data_source'].gather(plot_entry['xident'],
+                                                              plot_entry['yidents'],
+                                                              animate)
 
 def init_animate():
     """Initialize the plots to nothing.  this allows animation looping so
