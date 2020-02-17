@@ -33,7 +33,8 @@ anim = None
 default_data_source = None
 data_sources = []
 pause_button = None
-savde_plots = None
+save_button = None
+saved_plots = None
 
 def parse_args():
     parser = argparse.ArgumentParser(epilog = "Example usage: log-plotter.py -p estimated_x_position,estimated_y_position / linear_velocity angular_velocity -a -f 50 drivetrain_status.csv")
@@ -256,6 +257,12 @@ def freeze(event):
         data_source.clear_data()
     
     clear_data(event)
+
+def save_data(event):
+    for count, plot_entry in enumerate(plot_info):
+        # will return a pandas dataframe with x, y
+        plot_entry['data'].to_csv(str(count) + ".csv")
+    
 
 def clear_data(event):
     """Called on a button push for live animations to clear the current plots"""
@@ -701,6 +708,11 @@ def main():
             global freeze_button
             freeze_button = matplotlib.widgets.Button(axnext, 'freeze')
             freeze_button.on_clicked(freeze)
+
+            axnext = plt.axes([0.15, 0.0, 0.05, 0.05])
+            global save_button
+            save_button = matplotlib.widgets.Button(axnext, 'save')
+            save_button.on_clicked(save_data)
 
         plt.show()
 
