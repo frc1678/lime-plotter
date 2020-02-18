@@ -150,7 +150,7 @@ with configuration like:
 
 ```
   timemarkers:
-    # plot the regular 
+    # plot the regular robot x/y coordinates
     - x: Robot X
       y: Robot Y
       fixedAspect: true
