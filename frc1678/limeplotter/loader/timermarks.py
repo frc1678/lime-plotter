@@ -47,6 +47,7 @@ class TimerMarks(LoaderBase):
             if x == 0.0 or y == 0.0:
                 self._next_mark = 0
                 return
+
             self._data[self._x].append(x)
             self._data[self._y].append(y)
 
