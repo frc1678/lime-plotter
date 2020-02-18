@@ -142,3 +142,23 @@ change the frame rate (when graphing CSV files, it'll draw faster with
 higher values -- the default is 20; when drawing from network tables
 it'll use this value as the polling frequency, and should be set to
 the same number of milliseconds that the robot is using to update tables).
+
+# time markers
+
+You can turn on time markers, that mark bigger dots every N seconds
+with configuration like:
+
+```
+  timemarkers:
+    # plot the regular 
+    - x: Robot X
+      y: Robot Y
+      fixedAspect: true
+
+    # Plot a larger (size 20) dot every 1 second ontop the Robot X/Y marks
+    - data_source: timer
+      marker_size: 20
+      x: Robot X
+      y: Robot Y
+      delta: 1
+```
