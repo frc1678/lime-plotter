@@ -34,8 +34,12 @@ class TimerMarks(LoaderBase):
     def gather(self, xident, yidents, animate = False):
         now = time.time()
         if now > self._next_mark:
-            self._next_mark = self._next_mark + self._delta
+            self._next_mark = now + self._delta
             dfs = self._data_source.gather(self._xident, [self._yident], animate)
+            # make sure we have some data
+            if len(dfs[self._x]) == 0 or len(dfs[self._y]) == 0:
+                return
+
             x = float(dfs[self._x][-1:])
             y = float(dfs[self._y][-1:])
 
