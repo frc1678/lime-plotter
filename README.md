@@ -133,6 +133,22 @@ file present, as they're included in the package data:
 - 2020map-rev.svg  (reverses the playing field top to bottom)
 - 2020map-full.svg (the full field with human areas)
 
+### adding offsets for your robot's starting position
+
+When your robot starts at a point in the field, you can adjust it's
+`xoff` and `yoff` values to set the offsets into the field, with `0,0`
+being in the bottom left.
+
+```
+plots:
+  position:
+    - x: Robot X
+      y: Robot Y
+      xoff: 100
+      yoff: 50
+      fixedAspect: true
+```
+
 # Animation
 
 When plotting from *networktables* or with the *-a* switch applied,
@@ -149,6 +165,7 @@ You can turn on time markers, that mark bigger dots every N seconds
 with configuration like:
 
 ```
+plots:
   timemarkers:
     # plot the regular robot x/y coordinates
     - x: Robot X
