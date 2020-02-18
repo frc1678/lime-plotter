@@ -261,10 +261,12 @@ def freeze(event):
     clear_data(event)
 
 def save_data(event):
-    now = time.ctime()
+    now = str(time.time())
+    print("saving...")
     for count, plot_entry in enumerate(plot_info):
         # will return a pandas dataframe with x, y
-        plot_entry['data'].to_csv(now + "-" + str(count) + ".csv")
+        plot_entry['data'].to_csv(now + "-" + str(count) + ".csv",
+                                  index_label="index")
     
 
 def clear_data(event):
