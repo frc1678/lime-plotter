@@ -29,7 +29,7 @@ def parse_args():
 DEFAULT_TIMESTAMP='localtime'
 
 class NetworkTablesLoader(LoaderBase):
-    def __init__(self, server, plots=[{}], ignore_zeros=True):
+    def __init__(self, server, plots=[{}], ignore_zeros=False):
         self._server = server
         self._plots = plots
         self._time = 0.0
