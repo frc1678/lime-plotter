@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="frc1678-lime-plotter",
-    version="0.5.8",
+    version="0.5.9",
     author="Wes Hardaker",
     author_email="opensource@hardakers.net",
     description="A matplotlib based plotter for FRC logs and networktables",
