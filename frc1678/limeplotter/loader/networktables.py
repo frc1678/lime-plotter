@@ -57,6 +57,18 @@ class NetworkTablesLoader(LoaderBase):
 
         self.open_networktables()
 
+    def setup_table_entry(self, x, yident):
+        table = yident[0]
+
+        if table not in self._nettables:
+            self._nettables[table] = NetworkTables.getTable(table)
+            self._tables[table] = {}
+        
+        y = yident[1]
+
+        self._tables[table][x] = []
+        self._tables[table][y] = [] # overwriting is ok if done
+
     def setup_table_storage(self):
         if self._tables:
             return
@@ -73,16 +85,7 @@ class NetworkTablesLoader(LoaderBase):
                     x = DEFAULT_TIMESTAMP
 
                 for yident in subplot['yidents']:
-                    table = yident[0]
-
-                    if table not in self._nettables:
-                        self._nettables[table] = NetworkTables.getTable(table)
-                        self._tables[table] = {}
-            
-                    y = yident[1]
-
-                    self._tables[table][x] = []
-                    self._tables[table][y] = [] # overwriting is ok if done
+                    self.setup_table_entry(x, yident)
 
     @property
     def variables_available(self):
@@ -127,9 +130,11 @@ class NetworkTablesLoader(LoaderBase):
         # animate is pretty much always useless to us since
         # we don't have a "get everything" type of source
         # thus we ignore it and return everything we have always
-        datastruct = {xident[1]: self._tables[xident[0]][xident[1]]}
+        datastruct = {}
+        if xident:
+            datastruct[xident[1]] = self._tables[xident[0]][xident[1]]
         for yident in yidents:
-            datastruct[yident[1]] = self._tables[xident[0]][yident[1]]
+            datastruct[yident[1]] = self._tables[yident[0]][yident[1]]
         df = pd.DataFrame(datastruct,
                           columns=list(datastruct.keys()))
         if self._ignore_zeros:
