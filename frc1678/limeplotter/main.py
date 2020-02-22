@@ -151,6 +151,11 @@ def update_animate(i):
                 continue
 
             # gather the x axis data
+            if 'x' not in plot_entry or type(plot_entry['data']) == None:
+                print("no x")
+                print(plot_entry)
+                continue
+            
             xdata = plot_entry['data'][plot_entry['x']]
             if 'xoff' in plot_entry['options']:
                 xdata = xdata + float(plot_entry['options']['xoff'])
