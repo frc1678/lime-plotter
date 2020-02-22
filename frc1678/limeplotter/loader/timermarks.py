@@ -44,12 +44,13 @@ class TimerMarks(LoaderBase):
             y = float(dfs[self._y][-1:])
 
             # if we're on the 0 line, the robot is off
-            if x == 0.0 or y == 0.0:
+            if x != 0.0 or y != 0.0:
+                self._data[self._x].append(x)
+                self._data[self._y].append(y)
+            else:
+                # if off, reset the expected next mark
                 self._next_mark = 0
-                return
 
-            self._data[self._x].append(x)
-            self._data[self._y].append(y)
 
         return pd.DataFrame(self._data,
                             columns=[self._x, self._y])
