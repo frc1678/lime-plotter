@@ -55,53 +55,10 @@ class TimerMarks(LoaderBase):
         return pd.DataFrame(self._data,
                             columns=[self._x, self._y])
 
-    def load_file(self, filename, directory = None):
-        if directory:
-            path = directory + "/" + filename
-        else:
-            path = filename
-
-        df = pd.read_csv(path)
-        #df = df.loc[(df != 0).all(axis=1), :]
-
-        self._csvs.append(path)
-        self._dataframes[path] = df
-
-        return df
-
     def clear(self):
         self._csvs = []
-        self._dataframes = {}
-
-    def load_directory(self, directory = None, clear_old = True):
-        if not directory:
-            directory = self._directory
-
-        # Find all csvs in dir
-        files = (os.listdir(directory))
-
-        # clear old
-        if clear_old:
-            self.clear()
-    
-        # load each file in the directory
-        for filename in files:
-            if not filename.endswith(".csv"):
-                continue
-
-            self.load_file(filename, directory)
-
-        return self._dataframes
-
-    def load_file_or_directory(self, thing):
-        if os.path.isdir(thing):
-            return self.load_directory(thing)
-        else:
-            self.load_file(thing)
-
-    def load_file_or_directories(self, things):
-        for thing in things:
-            self.load_file_or_directory(thing)
+        for col in self._data:
+            self._data[col] = []
 
     def find_column_identifier(self, column_name):
         # ask the source for their ident
@@ -113,7 +70,8 @@ class TimerMarks(LoaderBase):
 
     def clear_data(self):
         # we just restart the starting time notion 
-        self._data = {}
+        for col in self._data:
+            self._data[col] = []
 
 if __name__ == "__main__":
     print("DNE")
