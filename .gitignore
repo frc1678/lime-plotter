@@ -3,3 +3,8 @@ build
 dist
 *.pyc
 *~
+*.csv
+*.yml
+*.svg
+*.jpg
+*.png
