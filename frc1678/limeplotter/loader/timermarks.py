@@ -17,6 +17,7 @@ class TimerMarks(LoaderBase):
                       self._y: [],}
         self._next_mark = 0
         self._delta = 60
+        self._last_annonate = 0
         if 'delta' in config:
             self._delta = config['delta']
 
@@ -72,6 +73,16 @@ class TimerMarks(LoaderBase):
         # we just restart the starting time notion 
         for col in self._data:
             self._data[col] = []
+
+    def annotate(self, axis, data, annotate_config):
+        count = len(data[self._x].index)
+        if count > self._last_annonate:
+            self._last_annonate = count
+            lastx = data[self._x].iloc[-1]
+            lasty = data[self._y].iloc[-1]
+            axis.annotate(str(count), xy=(lastx, lasty),
+                          xytext=(lastx + 2, lasty))
+            
 
 if __name__ == "__main__":
     print("DNE")

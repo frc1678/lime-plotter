@@ -119,9 +119,14 @@ def gather_new_data(plot_info, animate):
         data_source.gather_next_datasets()
     for plot_entry in plot_info:
         # will return a pandas dataframe with x, y
-        plot_entry['data'] = plot_entry['data_source'].gather(plot_entry['xident'],
-                                                              plot_entry['yidents'],
-                                                              animate)
+        ds = plot_entry['data_source']
+        plot_entry['data'] = ds.gather(plot_entry['xident'],
+                                       plot_entry['yidents'],
+                                       animate)
+        if 'annotate' in plot_entry['options']:
+            ds.annotate(plot_entry['axis'],
+                        plot_entry['data'],
+                        plot_entry['options']['annotate'])
 
 def init_animate():
     """Initialize the plots to nothing.  this allows animation looping so
