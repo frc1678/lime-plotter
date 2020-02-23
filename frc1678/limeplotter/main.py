@@ -561,6 +561,10 @@ def create_matplotlib_plots(plot_info, animate=False, scatter=False):
             if 'marker_size' in plot_entry['options']:
                 marker_size = float(plot_entry['options']['marker_size'])
                 debug("marker size: ------------ " + str(marker_size))
+
+            if 'color' in plot_entry['options']:
+                if plot_entry['options']['color'] != 'random':
+                    color = plot_entry['options']['color']
                 
             if animate:
                 # Animation requires plotting no data, and doing so in the
@@ -568,9 +572,11 @@ def create_matplotlib_plots(plot_info, animate=False, scatter=False):
                 # for later use.
                 if scatter:
                     p = plot_entry['axis'].plot([], [], label=y, ls='',
-                                                marker = '.', ms=marker_size)
+                                                marker = '.', ms=marker_size,
+                                                color=color)
                 else:
-                    p = plot_entry['axis'].plot([], [], label=y, ms=marker_size)
+                    p = plot_entry['axis'].plot([], [], label=y, ms=marker_size,
+                                                color=color)
 
                 plot_entry['plot'] = p[0]
                 animate_plots.append(p[0])
@@ -578,9 +584,12 @@ def create_matplotlib_plots(plot_info, animate=False, scatter=False):
             else:
                 if scatter:
                     plot_entry['axis'].scatter(x_data, y_data, label=y,
-                                               marker = '.', s=marker_size)
+                                               marker = '.', s=marker_size,
+                                                color=color)
                 else:            
-                    plot_entry['axis'].plot(x_data, y_data, label=y, ms=marker_size)
+                    plot_entry['axis'].plot(x_data, y_data, label=y,
+                                            ms=marker_size,
+                                            color=color)
     
     
 
