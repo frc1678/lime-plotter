@@ -12,6 +12,7 @@ import pandas as pd
 import yaml
 import matplotlib
 import matplotlib.pyplot as plt
+import math
 
 from matplotlib.animation import FuncAnimation
 from matplotlib.path import Path
@@ -187,6 +188,8 @@ def update_animate(i):
             if 'y_axis_set' in plot_entry:
                 update_y_limits = False
 
+        if math.isnan(xlims[0]):
+            continue
 
         # steals last plot from loop
         if update_x_limits:
