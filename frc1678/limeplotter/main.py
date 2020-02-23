@@ -561,7 +561,8 @@ def create_matplotlib_plots(plot_info, animate=False, scatter=False):
             if 'marker_size' in plot_entry['options']:
                 marker_size = float(plot_entry['options']['marker_size'])
                 debug("marker size: ------------ " + str(marker_size))
-
+                
+            color=None
             if 'color' in plot_entry['options']:
                 if plot_entry['options']['color'] != 'random':
                     color = plot_entry['options']['color']
