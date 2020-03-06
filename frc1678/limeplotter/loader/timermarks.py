@@ -80,8 +80,14 @@ class TimerMarks(LoaderBase):
             self._last_annonate = count
             lastx = data[self._x].iloc[-1]
             lasty = data[self._y].iloc[-1]
+            if 'xoff' in self._config:
+                lastx = lastx + self._config['xoff']
+            if 'yoff' in self._config:
+                lasty = lasty + self._config['yoff']
+
             axis.annotate(str(count), xy=(lastx, lasty),
-                          xytext=(lastx + 2, lasty))
+                          xytext=(lastx, lasty),
+                          ha='center', va='center')
             
 
 if __name__ == "__main__":
