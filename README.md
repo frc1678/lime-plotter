@@ -128,10 +128,11 @@ Here's a copy of the [FRC 2020 map] as a plottable SVG:
 The following map files can be specified without actually having a
 file present, as they're included in the package data:
 
-- 2019map.svg
+- 2021.svg
 - 2020map.svg      (just the playing field)
 - 2020map-rev.svg  (reverses the playing field top to bottom)
 - 2020map-full.svg (the full field with human areas)
+- 2019map.svg
 
 ### adding offsets for your robot's starting position
 
