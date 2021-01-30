@@ -15,8 +15,8 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     entry_points={
         'console_scripts': [
-            'lime-plotter.py = frc1678.limeplotter.main:main',
-            'lime-server.py = frc1678.limeplotter.networktablesserver:main',
+            'lime-plotter = frc1678.limeplotter.main:main',
+            'lime-server = frc1678.limeplotter.networktablesserver:main',
         ]
     },
     classifiers=[
@@ -34,7 +34,8 @@ setuptools.setup(
     ],
     test_suite='nose.collector',
     tests_require=['nose'],
-    package_data = { 'frc1678.limeplotter.loader': ['svgs/2020map.svg',
+    package_data = { 'frc1678.limeplotter.loader': ['svgs/2021.svg',
+                                                    'svgs/2020map.svg',
                                                     'svgs/2020map-rev.svg',
                                                     'svgs/2020map-full.svg',
                                                     'svgs/2019map.svg'] },
