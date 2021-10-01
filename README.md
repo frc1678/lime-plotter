@@ -21,10 +21,10 @@ configuration files** (see the example below).
 
 ## Reading from logs
 
-lime-plotter.py can be run with a *-L* switch to load CSV files from a
+*lime-plotter* can be run with a *-L* switch to load CSV files from a
 file, multiple files, or a directory.  EG calling it as:
 
-    lime-plotter.py -L DIR
+    lime-plotter -L DIR
 	
 Will load all the files it can from the *DIR* directory.  Table names
 will be assumed from the CSV file names.
@@ -35,13 +35,13 @@ To read from a network table, use the *-N* switch to specify the
 network address to connect to, and optionally a *-T* switch to specify
 a default table to read from.
 
-    lime-plotter.py -N 10.0.0.1 -t nettable
+    lime-plotter -N 10.0.0.1 -T nettable
 
 ## Listing available tables / columns
 
 This works for both NetworkTables and CSV logs:
 
-    lime-plotter.py -N 10.0.0.1 -l
+    lime-plotter -N 10.0.0.1 -l
 
 # Example configuration
 
@@ -71,10 +71,10 @@ plots:
       last: 100
 ```
 
-Saving this to xy.yml and running lime-plotter.py to load logs from a
+Saving this to xy.yml and running lime-plotter to load logs from a
 *'log'* directory as follows:
 
-    lime-plotter.py -L log -y xy.yml -o xytest.png
+    lime-plotter -L log -y xy.yml -o xytest.png
 	
 Might produce the following graph:
 
@@ -98,14 +98,14 @@ x column if you don't wish.
 
 And run with
 
-    lime-plotter.py -L log -y multiple.yml -o multiple.yng
+    lime-plotter -L log -y multiple.yml -o multiple.yng
 	
 Will produce a graph similar to the following:
 
 ![Multiple Graphs](./images/multiple.png)
 
 Note: you can use the -Y flag to plot only a selected set of sections
-of the YAML file.  EG `lime-plotter.py -L log -y multiple.yml -Y velocity`
+of the YAML file.  EG `lime-plotter -L log -y multiple.yml -Y velocity`
 will plot only the first graph.
 
 ## Including an svg image (such as a field map)
@@ -128,10 +128,11 @@ Here's a copy of the [FRC 2020 map] as a plottable SVG:
 The following map files can be specified without actually having a
 file present, as they're included in the package data:
 
-- 2019map.svg
+- 2021.svg
 - 2020map.svg      (just the playing field)
 - 2020map-rev.svg  (reverses the playing field top to bottom)
 - 2020map-full.svg (the full field with human areas)
+- 2019map.svg
 
 ### adding offsets for your robot's starting position
 
