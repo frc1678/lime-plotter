@@ -19,29 +19,65 @@ Things to plot are specified either via complex command line arguments
 with the *-p* switch, or via **easier-to-read-and-write YAML
 configuration files** (see the example below).
 
-## Reading from logs
+# Datasources and loaders
+
+There are a number of ways where *lime-plotter* can get data from in
+order to draw on its map:
+
+1. CSV log files
+2. The robot's Network Tables broadcasting
+3. SVG files
+4. Timers
+
+Some of these data-sources (CSV and robot data) are specified on the
+command line, and others are part of the plot specification file (svg
+graphics and timers).
+
+## Reading from CSV log files
 
 *lime-plotter* can be run with a *-L* switch to load CSV files from a
-file, multiple files, or a directory.  EG calling it as:
+file, multiple files, or a directory of files.  
+
+For example, to load a CSV file:
+
+    lime-plotter -L log.csv
+
+Or calling it with a directory will try to get it to load all the
+files from a directory:
 
     lime-plotter -L DIR
 	
-Will load all the files it can from the *DIR* directory.  Table names
-will be assumed from the CSV file names.
+Table names will be assumed from the CSV file names.
 
-## Reading from FRC network tables
+## Reading from Robot's FRC network tables
 
-To read from a network table, use the *-N* switch to specify the
-network address to connect to, and optionally a *-T* switch to specify
-a default table to read from.
+To continuously download data from a robot's broadcasted network
+tables, use the *-N* switch to specify the robot's IP address to
+connect to, and optionally a *-T* switch to specify a default table to
+read from.
 
     lime-plotter -N 10.0.0.1 -T nettable
+    
+(in general, the -T switch shouldn't be needed except in rare cases)
 
-## Listing available tables / columns
+### Listing available tables / columns from the robot
 
-This works for both NetworkTables and CSV logs:
+In order to list the available variables that can be plotted, you can
+ask lime-plotter to list the variables it can find given the data
+source.  This is most helpful when getting information from a robot,
+but also works with CSV logs.  Here's an example of getting the list
+of current broadcasted variables from the robot:
 
     lime-plotter -N 10.0.0.1 -l
+
+# Configuration documentation 
+
+Configuration files for *lime-plotter* are stored in YAML formatted
+configuration files.  All data in a YAML file must be contained in a
+*plots* dictionary keyword, with each sub-keyword being the name of a
+plot.  Within each plot should be an array of things to plot.
+
+further details TBD -- see examples for now
 
 # Example configuration
 
@@ -50,8 +86,8 @@ The following are YAML file configuration examples.
 ## Example single graph
 
 The following example configuration file specifies a single plot
-called *position* and plots two overlayed graphs from the
-robot's *drivetrain_status* table:
+called *position* and plots two overlayed graphs from the Robot's
+datasets:
 
 ``` yaml
 plots:
@@ -62,17 +98,17 @@ plots:
       xmin: -7
       ymax: 7
       ymin: -7
-      table: drivetrain_status
       fixedAspect: True
       title: X/Y Test
     - x: profiled_x_goal
       y: profiled_y_goal
       table: drivetrain_status
+      # limits the plot to the last 100 points
       last: 100
 ```
 
-Saving this to xy.yml and running lime-plotter to load logs from a
-*'log'* directory as follows:
+Saving this configuration to xy.yml and running lime-plotter to load
+logs from a *log* directory as follows:
 
     lime-plotter -L log -y xy.yml -o xytest.png
 	
@@ -83,9 +119,7 @@ Might produce the following graph:
 ## Example multiple graphs
 
 To display multiple plots, configuration files can contain multiple
-named entries.  Note that in this case the tool will try and find the
-right table for you; I.E. you don't need to specify the table or even
-x column if you don't wish.
+named entries.
 
     plots:
       velocity:
@@ -104,13 +138,16 @@ Will produce a graph similar to the following:
 
 ![Multiple Graphs](./images/multiple.png)
 
+## Plotting only a single plot from a config file 
+
 Note: you can use the -Y flag to plot only a selected set of sections
 of the YAML file.  EG `lime-plotter -L log -y multiple.yml -Y velocity`
 will plot only the first graph.
 
 ## Including an svg image (such as a field map)
 
-Can be done with a 'data_source' entry inside a plot:
+Indicating that a plot is actually a static SVG file to be used as a
+background, set the plot's `data_source` to `svg` inside a plot:
 
     plots:
       - data_source: svg
@@ -119,14 +156,17 @@ Can be done with a 'data_source' entry inside a plot:
         ymax: 323.25 # (2020 dimensions in inches)
         alpha: .5
 
-Here's a copy of the [FRC 2020 map] as a plottable SVG:
+In general, the SVG plotter is not a full featured SVG but can plot
+basic SVG lines.  Anything else likely won't work.
+
+As an example, here's a copy of the [FRC 2020 map] as a plottable SVG:
 
 [FRC 2020 map]: ./images/2020map.svg
 
 ### Including built in maps
 
-The following map files can be specified without actually having a
-file present, as they're included in the package data:
+The following map file names can be specified without actually having
+a file present, as they're included in the package data:
 
 - 2021.svg
 - 2020map.svg      (just the playing field)
@@ -134,7 +174,7 @@ file present, as they're included in the package data:
 - 2020map-full.svg (the full field with human areas)
 - 2019map.svg
 
-### adding offsets for your robot's starting position
+## adding offsets for your robot's starting position
 
 When your robot starts at a point in the field, you can adjust it's
 `xoff` and `yoff` values to set the offsets into the field, with `0,0`
@@ -152,7 +192,7 @@ plots:
 
 # Animation
 
-When plotting from *networktables* or with the *-a* switch applied,
+When plotting from *networktables* (-N) or with the *-a* switch applied,
 a window will open that will animate the data flowing over time (live
 in the case of *networktables*).  You can use the *-f* switch to
 change the frame rate (when graphing CSV files, it'll draw faster with
@@ -160,10 +200,11 @@ higher values -- the default is 20; when drawing from network tables
 it'll use this value as the polling frequency, and should be set to
 the same number of milliseconds that the robot is using to update tables).
 
-# time markers
+## Time markers
 
-You can turn on time markers, that mark bigger dots every N seconds
-with configuration like:
+A final datasource is "time markers", which draws a small numbered
+circle every N seconds.  It is configured like follows to add position
+annotations to an existing plot:
 
 ```
 plots:
