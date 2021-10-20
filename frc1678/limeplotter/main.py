@@ -514,7 +514,7 @@ def create_plot_info(plots, axes):
             # Yell if we failed to find what they asked for
             if xident is None:
                 raise ValueError("failed to find x data for %s (with y of %s) " % (x,y))
-            if len(yidents) is 0:
+            if len(yidents) == 0:
                 raise ValueError("failed to find y data for " + y)
 
             debug("plotting " + x + ", " + str(ys))
