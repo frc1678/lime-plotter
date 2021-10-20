@@ -33,7 +33,7 @@ class SVGLoader():
         return False
     
     def open(self):
-        # read the sveg file
+        # read the svg file
 
         if os.path.exists(self._filename):
             doc = minidom.parse(self._filename)
@@ -90,15 +90,14 @@ class SVGLoader():
         """not needed"""
         return ['bogus']
     
+    def gather_next_datasets(self):
+        """We don't animate svgs -- this is a noop function"""
+        pass
+
     def find_column_timestamp_identifier(self, column_name,
                                          matching='timestamp'):
-        """not needed
-        """
+        """also not needed"""
         return ['bogus']
-
-    def gather_next_datasets(self):
-        """We don't animate svgs"""
-        pass
 
     def gather(self, xident, yident, animate = False):
         """read the paths out of the file"""

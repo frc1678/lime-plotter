@@ -3,4 +3,4 @@ numpy
 pandas
 pyyaml
 matplotlib
-
+svgpath2mpl
