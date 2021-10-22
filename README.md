@@ -221,3 +221,31 @@ plots:
       y: Robot Y
       delta: 1
 ```
+
+# Notes on operating system support:
+
+## Note on linux:
+
+The default install path is `~/.local/bin/`; make sure that's in your
+path or you can call it from there using `~/.local/bin/lime-plotter`.
+
+## Notes on windows:
+
+Windows installs python scripts differently.  The executable is
+`lime-plotter.exe` and is located in
+`c:\Users\YOU\AppData\Roaming\Python\Python37\Scripts\lime-plotter.exe`
+
+## Notes on OSX:
+
+It too has a special path -- watch the output of pip3 install to see
+where it gets installed and either call it with the full path name or
+put that directory in your path.
+
+## Running the code from the [lime-plotter code repo](https://github.com/frc1678/lime-plotter)
+
+If you clone the lime-plotter repo to run the latest and greatest that
+isn't installable yet, this command should get you started:
+
+```
+PYTHONPATH=. python3 frc1678/limeplotter/main.py -y ../lime-plotter-config/mapped.yml
+```
