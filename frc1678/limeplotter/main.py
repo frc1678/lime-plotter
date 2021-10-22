@@ -448,9 +448,9 @@ def create_plot_info(plots, axes):
                         xmax = entry['options']['xmax']
                         ymax = entry['options']['ymax']
                         if 'xmin' in entry['options']:
-                            xmin = entry['options'][xmin]
+                            xmin = entry['options']['xmin']
                         if 'ymin' in entry['options']:
-                            ymin = entry['options'][ymin]
+                            ymin = entry['options']['ymin']
 
                         config['transform_to_box'] = [xmin, ymin, xmax, ymax]
 
