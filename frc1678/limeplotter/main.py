@@ -354,6 +354,7 @@ def create_subplots_from_yaml(yaml_file, default_x='timestamp',
 
     # create an array of all the plots from the hierarchical structure
     subplots = []
+    subplot_keys = {}
     for key in contents['plots']:
         if plot_tokens and key not in plot_tokens:
             continue
@@ -385,7 +386,18 @@ def create_subplots_from_yaml(yaml_file, default_x='timestamp',
             subplot.append({'x': x,
                             'y': entry['y'],
                             'table': table,
+                            'key': key,
                             'options': entry})
+            subplot_keys[key] = 1
+
+    # check that we found all required plots
+    if plot_tokens:
+        if len(plot_tokens) != len(subplots):
+            # look for missing names for better errors
+            for token in plot_tokens:
+                if token not in subplot_keys:
+                    raise ValueError("CONFIGURATION ERROR: could not find plot '%s' in YAML file '%s'" % (token, yaml_file.name))
+                
     return subplots
 
 def create_subplots_from_arguments(arguments, default_x='timestamp',
