@@ -43,8 +43,6 @@ class NetworkTablesLoader(LoaderBase):
     
     def open_networktables(self):
         """Opens the networktables server connection"""
-        logging.basicConfig(level=logging.DEBUG)
-
         NetworkTables.initialize(server=self._server)
         
 
