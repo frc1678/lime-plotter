@@ -86,8 +86,12 @@ def parse_args():
     group.add_argument("-i", "--animation-interval", default=20, type=float,
                        help="Animation interval (milliseconds)")
 
-    group.add_argument("-n", "--no-legend", action="store_true",
-                       help="Don't print a legend -y 2021.yml -Y group.add_argument("-l", "--list-variables", action="store_true",
+    parser.add_argument("-n", "--no-legend", action="store_true",
+                        help="Don't print a legend on the graphs")
+
+    group = parser.add_argument_group("Debugging") 
+
+    group.add_argument("-l", "--list-variables", action="store_true",
                        help="Just list the available variables in the passed files and exit")
 
     group.add_argument("-d", "--debug", action="store_true",
