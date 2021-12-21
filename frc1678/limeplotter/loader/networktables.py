@@ -85,6 +85,10 @@ class NetworkTablesLoader(LoaderBase):
                     x = DEFAULT_TIMESTAMP
 
                 for yident in subplot['yidents']:
+                    if yident is None:
+                        logging.error(f"Unable to find Y column {subplot['y'][0]}")
+                        logging.error(f"   in plot: {subplot}")
+                        exit()
                     self.setup_table_entry(x, yident)
 
     @property
