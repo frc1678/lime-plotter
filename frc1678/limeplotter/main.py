@@ -40,60 +40,63 @@ save_button = None
 saved_plots = None
 
 def parse_args():
-    parser = argparse.ArgumentParser(epilog = "Example usage: log-plotter.py -p estimated_x_position,estimated_y_position / linear_velocity angular_velocity -a -f 50 drivetrain_status.csv")
+    parser = argparse.ArgumentParser(epilog = "Example usage: log-plotter.py -y 2021.yml -Y -a -f 50 drivetrain_status.csv")
 
-    parser.add_argument("-p", "--plot-pairs", type=str, nargs="*",
-                        help="List of comma separated X,Y variables to use.  If a single variable is specified, it will be Y with X taken from the timestamp column.  Separating variable sets with a / will create multiple plots instead.")
+    group = parser.add_argument_group("Data access")
 
-    parser.add_argument("-y", "--yaml-plot", default=None, type=argparse.FileType("r"),
-                        help="A YAML file with plotting specifications")
+    group.add_argument("-p", "--plot-pairs", type=str, nargs="*",
+                       help="List of comma separated X,Y variables to use.  If a single variable is specified, it will be Y with X taken from the timestamp column.  Separating variable sets with a / will create multiple plots instead.")
 
-    parser.add_argument("-Y", "--plot-tokens", default=None, type=str, nargs="*",
-                        help="A list of plot tokens to ONLY load from the yaml file")
+    group.add_argument("-y", "--yaml-plot", default=None, type=argparse.FileType("r"),
+                       help="A YAML file with plotting specifications")
 
-    parser.add_argument("-s", "--scatter-plot", action="store_true",
-                        help="Plot a scatter plot instead of a line plot")
+    group.add_argument("-Y", "--plot-tokens", default=None, type=str, nargs="*",
+                       help="A list of plot tokens to ONLY load from the yaml file")
 
-    parser.add_argument("-a", "--animate", action="store_true",
-                        help="Animate the plot")
+    group.add_argument("-L", "--log-files", type=str,
+                       nargs='*', help="Log files or dirs to plot")
 
-    parser.add_argument("-f", "--animation-frames", default=1, type=int,
-                        help="Number of frames to plot each time for speed")
+    group.add_argument("-N", "--network-server", type=str,
+                       help="NetworkTables server address to get data from")
 
-    parser.add_argument("-i", "--animation-interval", default=20, type=float,
-                        help="Animation interval (milliseconds)")
+    group.add_argument("-t", "--time-range", nargs=2, type=float,
+                       help="Only plot data between two time stamps")
 
-    parser.add_argument("-l", "--list-variables", action="store_true",
-                        help="Just list the available variables in the passed files and exit")
+    group.add_argument("-X", "--default-x", default="timestamp", type=str,
+                       help="Default x column when not specified")
 
-    parser.add_argument("-n", "--no-legend", action="store_true",
-                        help="Don't print a legend on the graphs")
-
-    parser.add_argument("-t", "--time-range", nargs=2, type=float,
-                        help="Only plot data between two time stamps")
-
-    parser.add_argument("-m", "--marker-columns", type=str, nargs="*",
-                        help="Marker columns to print")
-
-    parser.add_argument("-o","--output-file",
-                        type=str, nargs='?', 
-                        help="PNG File to save")
-
-    parser.add_argument("-L", "--log-files", type=str,
-                        nargs='*', help="Log files or dirs to plot")
-
-    parser.add_argument("-N", "--network-server", type=str,
-                        help="NetworkTables server address to get data from")
-
-    parser.add_argument("-d", "--debug", action="store_true",
-                        help="Turn on debugging output")
-
-    parser.add_argument("-X", "--default-x", default="timestamp", type=str,
-                        help="Default x column when not specified")
-
-    parser.add_argument("-T", "--default-table", default=None, type=str,
-                        help="Default table name when not specified")
+    group.add_argument("-T", "--default-table", default=None, type=str,
+                       help="Default table name when not specified")
     
+    group = parser.add_argument_group("Graphics controls") 
+
+    group.add_argument("-o","--output-file",
+                       type=str, nargs='?', 
+                       help="Save a PNG file instead of displaying an interactive window")
+
+    group.add_argument("-s", "--scatter-plot", action="store_true",
+                       help="Plot a scatter plot instead of a line plot")
+
+    group.add_argument("-a", "--animate", action="store_true",
+                       help="Animate the plot")
+
+    group.add_argument("-f", "--animation-frames", default=1, type=int,
+                       help="Number of frames to plot each time for speed")
+
+    group.add_argument("-i", "--animation-interval", default=20, type=float,
+                       help="Animation interval (milliseconds)")
+
+    group.add_argument("-n", "--no-legend", action="store_true",
+                       help="Don't print a legend -y 2021.yml -Y group.add_argument("-l", "--list-variables", action="store_true",
+                       help="Just list the available variables in the passed files and exit")
+
+    group.add_argument("-d", "--debug", action="store_true",
+                       help="Turn on debugging output")
+
+    # XXX currently broken:
+    # group.add_argument("-m", "--marker-columns", type=str, nargs="*",
+    #                     help="Marker columns to print")
+
     args = parser.parse_args()
 
     if not args.plot_pairs and not args.list_variables and not args.yaml_plot:
