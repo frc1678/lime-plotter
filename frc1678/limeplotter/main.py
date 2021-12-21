@@ -755,14 +755,14 @@ def main():
             pause_button = matplotlib.widgets.Button(axnext, 'pause')
             pause_button.on_clicked(pause)
 
-            axnext = plt.axes([0.10, 0.0, 0.05, 0.05])
+            axnext = plt.axes([0.10, 0.0, 0.10, 0.05])
             global freeze_button
-            freeze_button = matplotlib.widgets.Button(axnext, 'freeze')
+            freeze_button = matplotlib.widgets.Button(axnext, 'freeze track')
             freeze_button.on_clicked(freeze)
 
-            axnext = plt.axes([0.15, 0.0, 0.05, 0.05])
+            axnext = plt.axes([0.20, 0.0, 0.10, 0.05])
             global save_button
-            save_button = matplotlib.widgets.Button(axnext, 'save')
+            save_button = matplotlib.widgets.Button(axnext, 'save data')
             save_button.on_clicked(save_data)
 
         plt.show()
