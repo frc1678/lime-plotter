@@ -1,0 +1,29 @@
+plots:
+  #
+  # The following assumes you have the robot either transmitting
+  # X_position and Y_position variables over network tables, or
+  # logging them to a CSV file.
+  #
+  # example running using networktables to a robot at 10.0.0.10:
+  #    lime-plotter -y example-configs/2021-example.yml -Y basic_xy -N 10.0.0.10
+  # 
+  basic_xy:
+    - x: X_position
+      y: Y_position
+      fixedAspect: true
+
+  # this is the same thing, but overlays the track on a map from the 2020 game
+  #
+  #    lime-plotter -y example-configs/2021-example.yml -Y basic_xy_mapped -N 10.0.0.10
+  #
+  basic_xy_mapped:
+    - x: X_position
+      y: Y_position
+      fixedAspect: true
+
+    - data_source: svg
+      file: 2020map.svg
+      y: test
+      x: bogus
+
+  
