@@ -14,6 +14,8 @@ import matplotlib
 import matplotlib.pyplot as plt
 import math
 
+from logging import debug, info, warning, error, critical, basicConfig
+
 from matplotlib.animation import FuncAnimation
 from matplotlib.path import Path
 
@@ -24,8 +26,6 @@ from frc1678.limeplotter.loader.svg import SVGLoader
 
 import argparse
 import sys
-
-__debug = False
 
 animate_plots = []
 animate_data = []
@@ -94,8 +94,8 @@ def parse_args():
     group.add_argument("-l", "--list-variables", action="store_true",
                        help="Just list the available variables in the passed files and exit")
 
-    group.add_argument("-d", "--debug", action="store_true",
-                       help="Turn on debugging output")
+    parser.add_argument("--log-level", "--ll", default="info",
+                        help="Define the logging verbosity level (debug, info, warning, error, fotal, critical).")
 
     # XXX currently broken:
     # group.add_argument("-m", "--marker-columns", type=str, nargs="*",
@@ -103,22 +103,18 @@ def parse_args():
 
     args = parser.parse_args()
 
+    log_level = args.log_level.upper()
+    basicConfig(level=log_level,
+                format="%(levelname)-10s:\t%(message)s")
+
     if not args.plot_pairs and not args.list_variables and not args.yaml_plot:
         print("-y with a yaml file or -p with plot-pairs is required")
         exit(1)
-
-    global __debug
-    __debug = args.debug
 
     global animate_frames
     animate_frames = args.animation_frames
 
     return args
-
-def debug(line):
-    """Prints debug log lines when debugging is turned on"""
-    if __debug:
-        print(line)
 
 def gather_new_data(plot_info, animate):
     """Gather's the next round of data to plot when animating"""
