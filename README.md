@@ -83,6 +83,8 @@ further details TBD -- see examples for now
 
 The following are YAML file configuration examples.
 
+Also see a complete example in `example-configs/2021-example.yml`
+
 ## Example single graph
 
 The following example configuration file specifies a single plot

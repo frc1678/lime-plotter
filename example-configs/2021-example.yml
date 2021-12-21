@@ -2,7 +2,8 @@ plots:
   #
   # The following assumes you have the robot either transmitting
   # X_position and Y_position variables over network tables, or
-  # logging them to a CSV file.
+  # logging them to a CSV file.  The xoff/yoff can be tweaked to
+  # control the starting location of the robot.
   #
   # example running using networktables to a robot at 10.0.0.10:
   #    lime-plotter -y example-configs/2021-example.yml -Y basic_xy -N 10.0.0.10
@@ -11,8 +12,11 @@ plots:
     - x: X_position
       y: Y_position
       fixedAspect: true
+      title: Roving Around The Globe
+      xoff: 100
+      yoff: 50
 
-  # this is the same thing, but overlays the track on a map from the 2020 game
+  # this is the same thing, but overlays the track on a map from the 2021 game
   #
   #    lime-plotter -y example-configs/2021-example.yml -Y basic_xy_mapped -N 10.0.0.10
   #
@@ -20,10 +24,22 @@ plots:
     - x: X_position
       y: Y_position
       fixedAspect: true
+      title: Roving Around The Globe on a Map
+      xoff: 100
+      yoff: 50
 
     - data_source: svg
-      file: 2020map.svg
+      file: 2021.svg
       y: test
       x: bogus
+      alpha: .5  # make it subtle
 
-  
+  # Plotting a time-based graph of a variable
+  #
+  #    lime-plotter -y example-configs/2021-example.yml -Y velocity -N 10.0.0.10
+  #
+  velocity:
+    - y: linear_velocity
+      title: How fast are we going
+    - y: angular_velocity
+    
