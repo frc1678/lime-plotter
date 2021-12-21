@@ -39,7 +39,9 @@ plots:
   #    lime-plotter -y example-configs/2021-example.yml -Y velocity -N 10.0.0.10
   #
   velocity:
-    - y: linear_velocity
+    - x: localtime
       title: How fast are we going
-    - y: angular_velocity
+    - y:
+      - linear_velocity
+      - angular_velocity
     
