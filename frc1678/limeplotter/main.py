@@ -253,8 +253,8 @@ def freeze(event):
                 codes = codes[:-2]
                 path = Path(verts)
 
-                patch = matplotlib.patches.PathPatch(path, facecolor="orange",
-                                                     color="orange", fill=False,
+                patch = matplotlib.patches.PathPatch(path, facecolor="grey",
+                                                     color="grey", fill=False,
                                                      linestyle=":")
                 axis = plot_entry['axis']
                 patch.set_transform(axis.transData)
