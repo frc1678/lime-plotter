@@ -698,7 +698,7 @@ def main():
     #   - marker defaults to 'x' if not specified
 
     # XXX: broken
-    if args.marker_columns:
+    if False: # if args.marker_columns:
         for column_spec in args.marker_columns:
             parts = column_spec.split(",")
             column = parts[0]
