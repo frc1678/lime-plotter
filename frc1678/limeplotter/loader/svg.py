@@ -16,6 +16,7 @@ class SVGLoader():
     def __init__(self, filename, config = {}):
         """Sets the SVG filename and optional transformation box"""
         self._filename = filename
+        self._bbox = False
 
         if 'transform_to_box' in config:
             b = config['transform_to_box']
