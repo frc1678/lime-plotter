@@ -455,6 +455,31 @@ def create_subplots_from_arguments(arguments, default_x='timestamp',
                             'options': {}})
     return subplots
 
+
+def find_idents(source, x, ys):
+    # find the data columns we need to plot from the correct tables
+    time_data = []
+    yidents = []
+    for y in ys:
+        yident = source.find_column_identifier(y)
+        yidents.append(yident)
+
+    if x == source.get_default_time_column():
+        xident = source.find_column_timestamp_identifier(ys[0])
+    else:
+        xident = source.find_column_identifier(x)
+
+    # Yell if we failed to find what they asked for
+    if xident is None:
+        raise ValueError("CONFIGURATION ERROR: failed to find x data for variable '%s' (with y of '%s') " % (x,y))
+    if len(yidents) == 0:
+        raise ValueError("CONFIGURATION ERROR: failed to find y data for variable '%s'" % (y))
+
+    debug("plotting " + x + ", " + str(ys))
+
+    return (xident, yidents)
+
+
 def create_plot_info(plots, axes):
     """Creates a plot information array list that can be iterated over later.
 
@@ -538,25 +563,7 @@ def create_plot_info(plots, axes):
             # especially because timestamps should all come from the same file
             debug("checking data for: " + x + ", " + str(ys))
 
-            # find the data columns we need to plot from the correct tables
-            time_data = []
-            yidents = []
-            for y in ys:
-                yident = source.find_column_identifier(y)
-                yidents.append(yident)
-
-            if x == source.get_default_time_column():
-                xident = source.find_column_timestamp_identifier(ys[0])
-            else:
-                xident = source.find_column_identifier(x)
-
-            # Yell if we failed to find what they asked for
-            if xident is None:
-                raise ValueError("CONFIGURATION ERROR: failed to find x data for variable '%s' (with y of '%s') " % (x,y))
-            if len(yidents) == 0:
-                raise ValueError("CONFIGURATION ERROR: failed to find y data for variable '%s'" % (y))
-
-            debug("plotting " + x + ", " + str(ys))
+            (xident, yidents) = find_idents(source, x, ys)
 
             entry['xident'] = xident
             entry['yidents'] = yidents
