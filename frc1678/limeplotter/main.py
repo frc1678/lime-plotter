@@ -82,7 +82,7 @@ def parse_args():
     group.add_argument("-a", "--animate", action="store_true",
                        help="Animate the plot")
 
-    group.add_argument("-f", "--animation-frames", default=1, type=int,
+    group.add_argument("-f", "--animation-frames", default=10, type=int,
                        help="Number of frames to plot each time for speed")
 
     group.add_argument("-i", "--animation-interval", default=20, type=float,
