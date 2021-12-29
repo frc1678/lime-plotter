@@ -480,6 +480,64 @@ def find_idents(source, x, ys):
     return (xident, yidents)
 
 
+def setup_datasource(entry):
+    if 'data_source' in entry['options']:
+        if entry['options']['data_source'] == 'svg':
+            # determine if we should scale to a size
+
+            config = {}
+            if 'ymax' in entry['options']:
+                (xmin, ymin) = (0,0)
+                xmax = entry['options']['xmax']
+                ymax = entry['options']['ymax']
+                if 'xmin' in entry['options']:
+                    xmin = entry['options']['xmin']
+                if 'ymin' in entry['options']:
+                    ymin = entry['options']['ymin']
+
+                config['transform_to_box'] = [xmin, ymin, xmax, ymax]
+
+            if 'alpha' in entry['options']:
+                config['alpha'] = entry['options']['alpha']
+
+            # create the drawer
+            ds = SVGLoader(entry['options']['file'], config)
+            
+            # have the class do final touches
+            ds.open()
+
+            entry['data_source'] = ds
+            entry['x'] = ds.get_default_time_column()
+            entry['y'] = ['svgy']
+            ys = entry['y']
+
+            ds.draw(entry['axis'])
+            # data_sources.append(entry['data_source'])
+            source = None
+
+        elif entry['options']['data_source'] == 'log':
+            log_source = LogLoader(sources=[str(entry['options']['file'])])
+            
+            entry['data_source'] = log_source
+            log_source.open()
+            data_sources.append(log_source)
+            source = log_source
+
+        elif entry['options']['data_source'] == 'timer':
+            timer_source = TimerMarks(entry['options'],
+                                      default_data_source)
+            entry['data_source'] = timer_source
+            timer_source.open()
+            data_sources.append(timer_source)
+            source = timer_source
+
+    else:
+        # use the default data source
+        source = default_data_source
+
+    entry['data_source'] = source
+    return source
+
 def create_plot_info(plots, axes):
     """Creates a plot information array list that can be iterated over later.
 
@@ -502,58 +560,9 @@ def create_plot_info(plots, axes):
 
             entry['axis'] = axes[axis_index]
 
-            if 'data_source' in entry['options']:
-                if entry['options']['data_source'] == 'svg':
-                    # determine if we should scale to a size
-
-                    config = {}
-                    if 'ymax' in entry['options']:
-                        (xmin, ymin) = (0,0)
-                        xmax = entry['options']['xmax']
-                        ymax = entry['options']['ymax']
-                        if 'xmin' in entry['options']:
-                            xmin = entry['options']['xmin']
-                        if 'ymin' in entry['options']:
-                            ymin = entry['options']['ymin']
-
-                        config['transform_to_box'] = [xmin, ymin, xmax, ymax]
-
-                    if 'alpha' in entry['options']:
-                        config['alpha'] = entry['options']['alpha']
-
-                    # create the drawer
-                    ds = SVGLoader(entry['options']['file'], config)
-                    
-                    # have the class do final touches
-                    ds.open()
-
-
-                    entry['data_source'] = ds
-                    entry['x'] = ds.get_default_time_column()
-                    entry['y'] = ['svgy']
-                    ys = entry['y']
-
-                    ds.draw(entry['axis'])
-                    # data_sources.append(entry['data_source'])
-                    continue
-
-                elif entry['options']['data_source'] == 'log':
-                    log_source = LogLoader(sources=[str(entry['options']['file'])])
-                    
-                    entry['data_source'] = log_source
-                    log_source.open()
-                    data_sources.append(log_source)
-                elif entry['options']['data_source'] == 'timer':
-                    timer_source = TimerMarks(entry['options'],
-                                              default_data_source)
-                    entry['data_source'] = timer_source
-                    timer_source.open()
-                    data_sources.append(timer_source)
-            else:
-                # use the default data source
-                entry['data_source'] = default_data_source
-
-            source = entry['data_source']
+            source = setup_datasource(entry)
+            if not source:
+                continue   # some sources are static data
 
             if type(ys) != list:
                 ys = [ys]
