@@ -161,8 +161,8 @@ def update_animate(i):
 
             # gather the x axis data
             if 'x' not in plot_entry or type(plot_entry['data']) == None:
-                print("no x")
-                print(plot_entry)
+                warn("animate update: no x")
+                warn(str(plot_entry))
                 continue
             
             xdata = plot_entry['data'][plot_entry['x']]
@@ -218,7 +218,7 @@ def update_animate(i):
     return plots_touched
 
 def freeze(event):
-    print("freezing")
+    debug("freezing")
     for (axis_index, subplot) in enumerate(saved_plots):
         for entry in subplot:
             plot_entry = entry
@@ -259,7 +259,7 @@ def freeze(event):
                 axis = plot_entry['axis']
                 patch.set_transform(axis.transData)
                 axis.add_patch(patch)
-                print("added:" + str(plot_entry['y']))
+                debug("added:" + str(plot_entry['y']))
 
 
 
@@ -278,7 +278,7 @@ def freeze(event):
 
 def save_data(event):
     now = str(time.time())
-    print("saving...")
+    debug("saving...")
     for count, plot_entry in enumerate(plot_info):
         # will return a pandas dataframe with x, y
         plot_entry['data'].to_csv(now + "-" + str(count) + ".csv",
