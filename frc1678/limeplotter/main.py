@@ -38,6 +38,8 @@ data_sources = []
 pause_button = None
 save_button = None
 saved_plots = None
+save_all_data = False
+saved_one = False
 
 def parse_args():
     parser = argparse.ArgumentParser(epilog = "Example usage: log-plotter.py -y 2021.yml -Y -a -f 50 drivetrain_status.csv")
@@ -91,6 +93,9 @@ def parse_args():
 
     group = parser.add_argument_group("Debugging") 
 
+    group.add_argument("-A", "--save-all-data", type=argparse.FileType("w"),
+                       help="Save all gathere data as a CSV file")
+
     group.add_argument("-l", "--list-variables", action="store_true",
                        help="Just list the available variables in the passed files and exit")
 
@@ -114,22 +119,41 @@ def parse_args():
     global animate_frames
     animate_frames = args.animation_frames
 
+    global save_all_data
+    if args.save_all_data:
+        save_all_data = args.save_all_data
+
     return args
 
 def gather_new_data(plot_info, animate):
     """Gather's the next round of data to plot when animating"""
+    global saved_one
     for data_source in data_sources:
         data_source.gather_next_datasets()
+    save_data = []
+    save_headers = []
     for plot_entry in plot_info:
         # will return a pandas dataframe with x, y
         ds = plot_entry['data_source']
         plot_entry['data'] = ds.gather(plot_entry['xident'],
                                        plot_entry['yidents'],
                                        animate)
+        if not saved_one:
+            save_headers.append(plot_entry['xident'][-1])
+            save_headers.extend([y[-1] for y in plot_entry['yidents']])
+        if save_all_data:
+            line = plot_entry['data'][:][-1:].to_csv(header=False, index=False).strip()
+            save_data.append(line)
         if 'annotate' in plot_entry['options']:
             ds.annotate(plot_entry['axis'],
                         plot_entry['data'],
                         plot_entry['options']['annotate'])
+
+    if save_all_data:
+        if not saved_one:
+            saved_one = True
+            save_all_data.write(",".join(save_headers) + "\n")
+        save_all_data.write(",".join(save_data) + "\n")
 
 def init_animate():
     """Initialize the plots to nothing.  this allows animation looping so
@@ -762,6 +786,10 @@ def main():
             save_button.on_clicked(save_data)
 
         plt.show()
+
+    if save_all_data:
+        save_all_data.close()
+        info(f"Saved data to {save_all_data.name}")
 
 if __name__ == "__main__":
     main()
