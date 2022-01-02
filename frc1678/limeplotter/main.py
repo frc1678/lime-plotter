@@ -593,6 +593,8 @@ def create_matplotlib_plots(plot_info, animate=False, scatter=False):
     if needed."""
     # actually do the plotting
     for plot_entry in plot_info:
+        if 'save_only' in plot_entry:
+            continue
         (x, ys) = (plot_entry['x'], plot_entry['y'])
 
         # These will store the x,y data for each plot
@@ -723,6 +725,28 @@ def main():
     # the data 
     create_plot_info(plots, axes)
 
+    # if log-all, create a special plot_sink
+    if args.save_all_data:
+        # Not all data sources support this
+        data = default_data_source.variables_available
+        vars = []
+        for source in data:
+            if source == 'SmartDashboard':
+                vars.extend(data[source])
+        
+        (xident, yidents) = find_idents(default_data_source, vars[0], vars[1:])
+
+        all_data_entry = {}
+        all_data_entry['xident'] = xident
+        all_data_entry['yidents'] = yidents
+        all_data_entry['data_source'] = default_data_source
+        all_data_entry['save_only'] = True
+        all_data_entry['options'] = {}
+
+        for yident in yidents:
+            default_data_source.setup_table_entry(xident[-1], yident)
+        plot_info.append(all_data_entry)
+
     # gather the data we need to plot
     # (for animation or network tables this will only gather a small sample)
     gather_new_data(plot_info, args.animate)
@@ -761,28 +785,6 @@ def main():
                 elif plot_pair_data[column]['y'][i] < rising_threshold:
                     is_low = True
             pass
-
-    # if log-all, create a special plot_sink
-    if args.save_all_data:
-        # Not all data sources support this
-        data = default_data_source.variables_available
-        vars = []
-        for source in data:
-            if source == 'SmartDashboard':
-                vars.extend(data[source])
-        
-        (xident, yidents) = find_idents(default_data_source, vars[0], vars[1:])
-
-        all_data_entry = {}
-        all_data_entry['xident'] = xident
-        all_data_entry['yidents'] = yidents
-        all_data_entry['data_source'] = default_data_source
-        all_data_entry['save_only'] = True
-        all_data_entry['options'] = {}
-
-        for yident in yidents:
-            default_data_source.setup_table_entry(xident[-1], yident)
-        plot_info.append(all_data_entry)
 
     # add in legends if desired
     if not args.no_legend:

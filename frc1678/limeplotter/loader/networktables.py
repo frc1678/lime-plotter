@@ -50,7 +50,7 @@ class NetworkTablesLoader(LoaderBase):
         """Opens the networktables server connection and creates storage"""
         
         self._nettables = {}
-        self._tables = None
+        self._tables = {}
         self._dfs = {}
 
         self.open_networktables()
