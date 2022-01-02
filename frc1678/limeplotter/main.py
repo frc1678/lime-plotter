@@ -762,19 +762,6 @@ def main():
                     is_low = True
             pass
 
-    # add in legends if desired
-    if not args.no_legend:
-        for (axis_index, subplot) in enumerate(plot_info):
-            subplot['axis'].legend()
-
-    # general clean-up: tighten up the plots and
-    plt.tight_layout()
-
-    # set font sizes and display size to something reasonable
-    fig.set_dpi(150)
-    fig.set_size_inches(11,7.5)
-    matplotlib.rcParams.update({'font.size': 10})
-
     # if log-all, create a special plot_sink
     if args.save_all_data:
         # Not all data sources support this
@@ -795,8 +782,21 @@ def main():
 
         for yident in yidents:
             default_data_source.setup_table_entry(xident[-1], yident)
-        import pdb ; pdb.set_trace()
         plot_info.append(all_data_entry)
+
+    # add in legends if desired
+    if not args.no_legend:
+        for subplot in plot_info:
+            if 'save_only' not in subplot:
+                subplot['axis'].legend()
+
+    # general clean-up: tighten up the plots and
+    plt.tight_layout()
+
+    # set font sizes and display size to something reasonable
+    fig.set_dpi(150)
+    fig.set_size_inches(11,7.5)
+    matplotlib.rcParams.update({'font.size': 10})
 
     if args.output_file:
         # save the results to the requested output file
