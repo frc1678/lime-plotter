@@ -38,7 +38,7 @@ data_sources = []
 pause_button = None
 save_button = None
 saved_plots = None
-save_all_data = False
+save_data = False
 saved_one = False
 
 def parse_args():
@@ -93,8 +93,11 @@ def parse_args():
 
     group = parser.add_argument_group("Debugging") 
 
-    group.add_argument("-A", "--save-all-data", type=argparse.FileType("w"),
+    group.add_argument("-A", "--save-data", type=argparse.FileType("w"),
                        help="Save all gathere data as a CSV file")
+
+    group.add_argument("--save-all-data", "--all", action="store_true",
+                       help="Save as much data as we can find")
 
     group.add_argument("-l", "--list-variables", action="store_true",
                        help="Just list the available variables in the passed files and exit")
@@ -119,9 +122,9 @@ def parse_args():
     global animate_frames
     animate_frames = args.animation_frames
 
-    global save_all_data
-    if args.save_all_data:
-        save_all_data = args.save_all_data
+    global save_data
+    if args.save_data:
+        save_data = args.save_data
 
     return args
 
@@ -130,30 +133,32 @@ def gather_new_data(plot_info, animate):
     global saved_one
     for data_source in data_sources:
         data_source.gather_next_datasets()
-    save_data = []
+    save_data_storage = []
     save_headers = []
     for plot_entry in plot_info:
         # will return a pandas dataframe with x, y
         ds = plot_entry['data_source']
+        debug(f"gathering: {plot_entry['xident']} -- {plot_entry['yidents']}")
         plot_entry['data'] = ds.gather(plot_entry['xident'],
                                        plot_entry['yidents'],
                                        animate)
+        debug(f"results: {plot_entry['data']}")
         if not saved_one:
             save_headers.append(plot_entry['xident'][-1])
             save_headers.extend([y[-1] for y in plot_entry['yidents']])
-        if save_all_data:
+        if save_data:
             line = plot_entry['data'][:][-1:].to_csv(header=False, index=False).strip()
-            save_data.append(line)
+            save_data_storage.append(line)
         if 'annotate' in plot_entry['options']:
             ds.annotate(plot_entry['axis'],
                         plot_entry['data'],
                         plot_entry['options']['annotate'])
 
-    if save_all_data:
+    if save_data:
         if not saved_one:
             saved_one = True
-            save_all_data.write(",".join(save_headers) + "\n")
-        save_all_data.write(",".join(save_data) + "\n")
+            save_data.write(",".join(save_headers) + "\n")
+        save_data.write(",".join(save_data_storage) + "\n")
 
 def init_animate():
     """Initialize the plots to nothing.  this allows animation looping so
@@ -300,7 +305,7 @@ def freeze(event):
     
     clear_data(event)
 
-def save_data(event):
+def save_data_btn(event):
     now = str(time.time())
     debug("saving...")
     for count, plot_entry in enumerate(plot_info):
@@ -702,6 +707,7 @@ def main():
                 print("  " + column)
         exit()
 
+
     # tell the datasource to initialize.
     default_data_source.open()
 
@@ -769,6 +775,29 @@ def main():
     fig.set_size_inches(11,7.5)
     matplotlib.rcParams.update({'font.size': 10})
 
+    # if log-all, create a special plot_sink
+    if args.save_all_data:
+        # Not all data sources support this
+        data = default_data_source.variables_available
+        vars = []
+        for source in data:
+            if source == 'SmartDashboard':
+                vars.extend(data[source])
+        
+        (xident, yidents) = find_idents(default_data_source, vars[0], vars[1:])
+
+        all_data_entry = {}
+        all_data_entry['xident'] = xident
+        all_data_entry['yidents'] = yidents
+        all_data_entry['data_source'] = default_data_source
+        all_data_entry['save_only'] = True
+        all_data_entry['options'] = {}
+
+        for yident in yidents:
+            default_data_source.setup_table_entry(xident[-1], yident)
+        import pdb ; pdb.set_trace()
+        plot_info.append(all_data_entry)
+
     if args.output_file:
         # save the results to the requested output file
         plt.savefig(args.output_file)
@@ -799,13 +828,13 @@ def main():
             axnext = plt.axes([0.20, 0.0, 0.10, 0.05])
             global save_button
             save_button = matplotlib.widgets.Button(axnext, 'save data')
-            save_button.on_clicked(save_data)
+            save_button.on_clicked(save_data_btn)
 
         plt.show()
 
-    if save_all_data:
-        save_all_data.close()
-        info(f"Saved data to {save_all_data.name}")
+    if save_data:
+        save_data.close()
+        info(f"Saved data to {save_data.name}")
 
 if __name__ == "__main__":
     main()
