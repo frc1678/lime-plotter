@@ -14,6 +14,8 @@ import matplotlib
 import matplotlib.pyplot as plt
 import math
 
+from logging import debug, info, warning, error, critical, basicConfig
+
 from matplotlib.animation import FuncAnimation
 from matplotlib.path import Path
 
@@ -24,8 +26,6 @@ from frc1678.limeplotter.loader.svg import SVGLoader
 
 import argparse
 import sys
-
-__debug = False
 
 animate_plots = []
 animate_data = []
@@ -38,6 +38,8 @@ data_sources = []
 pause_button = None
 save_button = None
 saved_plots = None
+save_data = False
+saved_one = False
 
 def parse_args():
     parser = argparse.ArgumentParser(epilog = "Example usage: log-plotter.py -y 2021.yml -Y -a -f 50 drivetrain_status.csv")
@@ -80,7 +82,7 @@ def parse_args():
     group.add_argument("-a", "--animate", action="store_true",
                        help="Animate the plot")
 
-    group.add_argument("-f", "--animation-frames", default=1, type=int,
+    group.add_argument("-f", "--animation-frames", default=10, type=int,
                        help="Number of frames to plot each time for speed")
 
     group.add_argument("-i", "--animation-interval", default=20, type=float,
@@ -91,11 +93,17 @@ def parse_args():
 
     group = parser.add_argument_group("Debugging") 
 
+    group.add_argument("-A", "--save-data", type=argparse.FileType("w"),
+                       help="Save all gathere data as a CSV file")
+
+    group.add_argument("--save-all-data", "--all", action="store_true",
+                       help="Save as much data as we can find")
+
     group.add_argument("-l", "--list-variables", action="store_true",
                        help="Just list the available variables in the passed files and exit")
 
-    group.add_argument("-d", "--debug", action="store_true",
-                       help="Turn on debugging output")
+    parser.add_argument("--log-level", "--ll", default="info",
+                        help="Define the logging verbosity level (debug, info, warning, error, fotal, critical).")
 
     # XXX currently broken:
     # group.add_argument("-m", "--marker-columns", type=str, nargs="*",
@@ -103,37 +111,54 @@ def parse_args():
 
     args = parser.parse_args()
 
+    log_level = args.log_level.upper()
+    basicConfig(level=log_level,
+                format="%(levelname)-10s:\t%(message)s")
+
     if not args.plot_pairs and not args.list_variables and not args.yaml_plot:
         print("-y with a yaml file or -p with plot-pairs is required")
         exit(1)
 
-    global __debug
-    __debug = args.debug
-
     global animate_frames
     animate_frames = args.animation_frames
 
-    return args
+    global save_data
+    if args.save_data:
+        save_data = args.save_data
 
-def debug(line):
-    """Prints debug log lines when debugging is turned on"""
-    if __debug:
-        print(line)
+    return args
 
 def gather_new_data(plot_info, animate):
     """Gather's the next round of data to plot when animating"""
+    global saved_one
     for data_source in data_sources:
         data_source.gather_next_datasets()
+    save_data_storage = []
+    save_headers = []
     for plot_entry in plot_info:
         # will return a pandas dataframe with x, y
         ds = plot_entry['data_source']
+        debug(f"gathering: {plot_entry['xident']} -- {plot_entry['yidents']}")
         plot_entry['data'] = ds.gather(plot_entry['xident'],
                                        plot_entry['yidents'],
                                        animate)
+        debug(f"results: {plot_entry['data']}")
+        if not saved_one:
+            save_headers.append(plot_entry['xident'][-1])
+            save_headers.extend([y[-1] for y in plot_entry['yidents']])
+        if save_data:
+            line = plot_entry['data'][:][-1:].to_csv(header=False, index=False).strip()
+            save_data_storage.append(line)
         if 'annotate' in plot_entry['options']:
             ds.annotate(plot_entry['axis'],
                         plot_entry['data'],
                         plot_entry['options']['annotate'])
+
+    if save_data:
+        if not saved_one:
+            saved_one = True
+            save_data.write(",".join(save_headers) + "\n")
+        save_data.write(",".join(save_data_storage) + "\n")
 
 def init_animate():
     """Initialize the plots to nothing.  this allows animation looping so
@@ -165,8 +190,8 @@ def update_animate(i):
 
             # gather the x axis data
             if 'x' not in plot_entry or type(plot_entry['data']) == None:
-                print("no x")
-                print(plot_entry)
+                warn("animate update: no x")
+                warn(str(plot_entry))
                 continue
             
             xdata = plot_entry['data'][plot_entry['x']]
@@ -222,7 +247,7 @@ def update_animate(i):
     return plots_touched
 
 def freeze(event):
-    print("freezing")
+    debug("freezing")
     for (axis_index, subplot) in enumerate(saved_plots):
         for entry in subplot:
             plot_entry = entry
@@ -257,13 +282,13 @@ def freeze(event):
                 codes = codes[:-2]
                 path = Path(verts)
 
-                patch = matplotlib.patches.PathPatch(path, facecolor="orange",
-                                                     color="orange", fill=False,
+                patch = matplotlib.patches.PathPatch(path, facecolor="grey",
+                                                     color="grey", fill=False,
                                                      linestyle=":")
                 axis = plot_entry['axis']
                 patch.set_transform(axis.transData)
                 axis.add_patch(patch)
-                print("added:" + str(plot_entry['y']))
+                debug("added:" + str(plot_entry['y']))
 
 
 
@@ -280,9 +305,9 @@ def freeze(event):
     
     clear_data(event)
 
-def save_data(event):
+def save_data_btn(event):
     now = str(time.time())
-    print("saving...")
+    debug("saving...")
     for count, plot_entry in enumerate(plot_info):
         # will return a pandas dataframe with x, y
         plot_entry['data'].to_csv(now + "-" + str(count) + ".csv",
@@ -435,6 +460,89 @@ def create_subplots_from_arguments(arguments, default_x='timestamp',
                             'options': {}})
     return subplots
 
+
+def find_idents(source, x, ys):
+    # find the data columns we need to plot from the correct tables
+    time_data = []
+    yidents = []
+    for y in ys:
+        yident = source.find_column_identifier(y)
+        yidents.append(yident)
+
+    if x == source.get_default_time_column():
+        xident = source.find_column_timestamp_identifier(ys[0])
+    else:
+        xident = source.find_column_identifier(x)
+
+    # Yell if we failed to find what they asked for
+    if xident is None:
+        raise ValueError("CONFIGURATION ERROR: failed to find x data for variable '%s' (with y of '%s') " % (x,y))
+    if len(yidents) == 0:
+        raise ValueError("CONFIGURATION ERROR: failed to find y data for variable '%s'" % (y))
+
+    debug("plotting " + x + ", " + str(ys))
+
+    return (xident, yidents)
+
+
+def setup_datasource(entry):
+    if 'data_source' in entry['options']:
+        if entry['options']['data_source'] == 'svg':
+            # determine if we should scale to a size
+
+            config = {}
+            if 'ymax' in entry['options']:
+                (xmin, ymin) = (0,0)
+                xmax = entry['options']['xmax']
+                ymax = entry['options']['ymax']
+                if 'xmin' in entry['options']:
+                    xmin = entry['options']['xmin']
+                if 'ymin' in entry['options']:
+                    ymin = entry['options']['ymin']
+
+                config['transform_to_box'] = [xmin, ymin, xmax, ymax]
+
+            if 'alpha' in entry['options']:
+                config['alpha'] = entry['options']['alpha']
+
+            # create the drawer
+            ds = SVGLoader(entry['options']['file'], config)
+            
+            # have the class do final touches
+            ds.open()
+
+            entry['data_source'] = ds
+            entry['x'] = ds.get_default_time_column()
+            entry['y'] = ['svgy']
+            ys = entry['y']
+
+            ds.draw(entry['axis'])
+            # data_sources.append(entry['data_source'])
+            source = None
+
+        elif entry['options']['data_source'] == 'log':
+            log_source = LogLoader(sources=[str(entry['options']['file'])])
+            
+            entry['data_source'] = log_source
+            log_source.open()
+            data_sources.append(log_source)
+            source = log_source
+
+        elif entry['options']['data_source'] == 'timer':
+            timer_source = TimerMarks(entry['options'],
+                                      default_data_source)
+            entry['data_source'] = timer_source
+            timer_source.open()
+            data_sources.append(timer_source)
+            source = timer_source
+
+    else:
+        # use the default data source
+        source = default_data_source
+
+    entry['data_source'] = source
+    return source
+
 def create_plot_info(plots, axes):
     """Creates a plot information array list that can be iterated over later.
 
@@ -457,58 +565,9 @@ def create_plot_info(plots, axes):
 
             entry['axis'] = axes[axis_index]
 
-            if 'data_source' in entry['options']:
-                if entry['options']['data_source'] == 'svg':
-                    # determine if we should scale to a size
-
-                    config = {}
-                    if 'ymax' in entry['options']:
-                        (xmin, ymin) = (0,0)
-                        xmax = entry['options']['xmax']
-                        ymax = entry['options']['ymax']
-                        if 'xmin' in entry['options']:
-                            xmin = entry['options']['xmin']
-                        if 'ymin' in entry['options']:
-                            ymin = entry['options']['ymin']
-
-                        config['transform_to_box'] = [xmin, ymin, xmax, ymax]
-
-                    if 'alpha' in entry['options']:
-                        config['alpha'] = entry['options']['alpha']
-
-                    # create the drawer
-                    ds = SVGLoader(entry['options']['file'], config)
-                    
-                    # have the class do final touches
-                    ds.open()
-
-
-                    entry['data_source'] = ds
-                    entry['x'] = ds.get_default_time_column()
-                    entry['y'] = ['svgy']
-                    ys = entry['y']
-
-                    ds.draw(entry['axis'])
-                    # data_sources.append(entry['data_source'])
-                    continue
-
-                elif entry['options']['data_source'] == 'log':
-                    log_source = LogLoader(sources=[str(entry['options']['file'])])
-                    
-                    entry['data_source'] = log_source
-                    log_source.open()
-                    data_sources.append(log_source)
-                elif entry['options']['data_source'] == 'timer':
-                    timer_source = TimerMarks(entry['options'],
-                                              default_data_source)
-                    entry['data_source'] = timer_source
-                    timer_source.open()
-                    data_sources.append(timer_source)
-            else:
-                # use the default data source
-                entry['data_source'] = default_data_source
-
-            source = entry['data_source']
+            source = setup_datasource(entry)
+            if not source:
+                continue   # some sources are static data
 
             if type(ys) != list:
                 ys = [ys]
@@ -518,25 +577,7 @@ def create_plot_info(plots, axes):
             # especially because timestamps should all come from the same file
             debug("checking data for: " + x + ", " + str(ys))
 
-            # find the data columns we need to plot from the correct tables
-            time_data = []
-            yidents = []
-            for y in ys:
-                yident = source.find_column_identifier(y)
-                yidents.append(yident)
-
-            if x == source.get_default_time_column():
-                xident = source.find_column_timestamp_identifier(ys[0])
-            else:
-                xident = source.find_column_identifier(x)
-
-            # Yell if we failed to find what they asked for
-            if xident is None:
-                raise ValueError("CONFIGURATION ERROR: failed to find x data for variable '%s' (with y of '%s') " % (x,y))
-            if len(yidents) == 0:
-                raise ValueError("CONFIGURATION ERROR: failed to find y data for variable '%s'" % (y))
-
-            debug("plotting " + x + ", " + str(ys))
+            (xident, yidents) = find_idents(source, x, ys)
 
             entry['xident'] = xident
             entry['yidents'] = yidents
@@ -552,6 +593,8 @@ def create_matplotlib_plots(plot_info, animate=False, scatter=False):
     if needed."""
     # actually do the plotting
     for plot_entry in plot_info:
+        if 'save_only' in plot_entry:
+            continue
         (x, ys) = (plot_entry['x'], plot_entry['y'])
 
         # These will store the x,y data for each plot
@@ -666,6 +709,7 @@ def main():
                 print("  " + column)
         exit()
 
+
     # tell the datasource to initialize.
     default_data_source.open()
 
@@ -680,6 +724,28 @@ def main():
 
     # the data 
     create_plot_info(plots, axes)
+
+    # if log-all, create a special plot_sink
+    if args.save_all_data:
+        # Not all data sources support this
+        data = default_data_source.variables_available
+        vars = []
+        for source in data:
+            if source == 'SmartDashboard':
+                vars.extend(data[source])
+        
+        (xident, yidents) = find_idents(default_data_source, vars[0], vars[1:])
+
+        all_data_entry = {}
+        all_data_entry['xident'] = xident
+        all_data_entry['yidents'] = yidents
+        all_data_entry['data_source'] = default_data_source
+        all_data_entry['save_only'] = True
+        all_data_entry['options'] = {}
+
+        for yident in yidents:
+            default_data_source.setup_table_entry(xident[-1], yident)
+        plot_info.append(all_data_entry)
 
     # gather the data we need to plot
     # (for animation or network tables this will only gather a small sample)
@@ -722,8 +788,9 @@ def main():
 
     # add in legends if desired
     if not args.no_legend:
-        for (axis_index, subplot) in enumerate(plot_info):
-            subplot['axis'].legend()
+        for subplot in plot_info:
+            if 'save_only' not in subplot:
+                subplot['axis'].legend()
 
     # general clean-up: tighten up the plots and
     plt.tight_layout()
@@ -763,9 +830,13 @@ def main():
             axnext = plt.axes([0.20, 0.0, 0.10, 0.05])
             global save_button
             save_button = matplotlib.widgets.Button(axnext, 'save data')
-            save_button.on_clicked(save_data)
+            save_button.on_clicked(save_data_btn)
 
         plt.show()
+
+    if save_data:
+        save_data.close()
+        info(f"Saved data to {save_data.name}")
 
 if __name__ == "__main__":
     main()

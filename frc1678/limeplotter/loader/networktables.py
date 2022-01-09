@@ -43,8 +43,6 @@ class NetworkTablesLoader(LoaderBase):
     
     def open_networktables(self):
         """Opens the networktables server connection"""
-        logging.basicConfig(level=logging.DEBUG)
-
         NetworkTables.initialize(server=self._server)
         
 
@@ -52,7 +50,7 @@ class NetworkTablesLoader(LoaderBase):
         """Opens the networktables server connection and creates storage"""
         
         self._nettables = {}
-        self._tables = None
+        self._tables = {}
         self._dfs = {}
 
         self.open_networktables()
@@ -85,6 +83,10 @@ class NetworkTablesLoader(LoaderBase):
                     x = DEFAULT_TIMESTAMP
 
                 for yident in subplot['yidents']:
+                    if yident is None:
+                        logging.error(f"Unable to find Y column {subplot['y'][0]}")
+                        logging.error(f"   in plot: {subplot}")
+                        exit()
                     self.setup_table_entry(x, yident)
 
     @property
