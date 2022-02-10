@@ -2,6 +2,7 @@ import sys
 import pandas as pd
 import os
 import os.path
+import time
 
 from frc1678.limeplotter.loader import LoaderBase
 
@@ -63,6 +64,15 @@ class LogLoader(LoaderBase):
 
         df = pd.read_csv(path)
         #df = df.loc[(df != 0).all(axis=1), :]
+
+        # fake-create a timestamp if there isn't one
+        if 'localtime' not in df:
+            delta = .02 # should match real robot loop
+            start_time = time.time()  # now, we plot into ethe future!
+            end_time = start_time + delta * len(df)
+            localtimes = [start_time + x * delta for x in range(len(df))]
+            df['localtime'] = localtimes
+            
 
         self._csvs.append(path)
         self._dataframes[path] = df
