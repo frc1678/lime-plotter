@@ -102,6 +102,9 @@ def parse_args():
     group.add_argument("-l", "--list-variables", action="store_true",
                        help="Just list the available variables in the passed files and exit")
 
+    parser.add_argument("--list-template", "--lt", action="store_true",
+                        help="Similar to list-variables, but dump as a YAML example template")
+
     parser.add_argument("--log-level", "--ll", default="info",
                         help="Define the logging verbosity level (debug, info, warning, error, fotal, critical).")
 
@@ -114,6 +117,9 @@ def parse_args():
     log_level = args.log_level.upper()
     basicConfig(level=log_level,
                 format="%(levelname)-10s:\t%(message)s")
+
+    if args.list_template:  # pretend they're the same for a while
+        args.list_variables = True
 
     if not args.plot_pairs and not args.list_variables and not args.yaml_plot:
         print("-y with a yaml file or -p with plot-pairs is required")
@@ -703,10 +709,24 @@ def main():
     if args.list_variables:
         # Not all data sources support this
         data = default_data_source.variables_available
-        for source in data:
-            print(source + ":")
-            for column in data[source]:
-                print("  " + column)
+
+        if args.list_template:
+            import re
+            example_config = {}
+            # build a fake config
+            for source in data:
+                for column in data[source]:
+                    column_short = re.sub("[^a-zA-Z0-9_]", "", column)
+                    example_config[column_short] = [
+                        {'x': 'localtime',
+                         'y': column}]
+                        
+            print(yaml.dump({'plots': example_config}))
+        else:
+            for source in data:
+                print(source + ":")
+                for column in data[source]:
+                    print("  " + column)
         exit()
 
 
