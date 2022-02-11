@@ -68,7 +68,8 @@ class LogLoader(LoaderBase):
         # fake-create a timestamp if there isn't one
         if 'localtime' not in df:
             delta = .02 # should match real robot loop
-            start_time = time.time()  # now, we plot into ethe future!
+            # start_time = time.time()  # now, we plot into ethe future!
+            start_time = 0
             end_time = start_time + delta * len(df)
             localtimes = [start_time + x * delta for x in range(len(df))]
             df['localtime'] = localtimes
