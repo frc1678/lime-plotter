@@ -118,11 +118,13 @@ class LogLoader(LoaderBase):
         for filename in self._dataframes:
             if column_name in self._dataframes[filename]:
                 return [filename, column_name]
+        raise ValueError(f"Failed to find '{column_name}' value")
 
     def find_column_timestamp_identifier(self, column_name, matching = 'timestamp'):
         for filename in self._dataframes:
             if column_name in self._dataframes[filename]:
                 return [filename, matching]
+        raise ValueError(f"Failed to find '{column_name}' (x axis) value")
 
     def clear_data(self):
         # we just restart the starting time notion 
