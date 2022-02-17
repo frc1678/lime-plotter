@@ -138,7 +138,7 @@ class NetworkTablesLoader(LoaderBase):
             if xident[0] == DEFAULT_TIMESTAMP:
                 datastruct[DEFAULT_TIMESTAMP] = time.time()
             elif xident[0] not in self._tables:
-                raise ValueError(f"failed to find '{xident[0]}' in networktables data")
+                raise ValueError(f"failed to find table '{xident[0]}' in networktables data {xident}")
             else:
                 datastruct[xident[1]] = self._tables[xident[0]][xident[1]]
         for yident in yidents:
