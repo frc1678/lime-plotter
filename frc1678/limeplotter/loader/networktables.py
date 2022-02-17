@@ -1,5 +1,6 @@
 import time
 import logging
+from logging import error
 
 from networktables import NetworkTables
 
