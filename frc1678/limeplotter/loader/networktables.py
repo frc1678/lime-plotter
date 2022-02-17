@@ -135,7 +135,12 @@ class NetworkTablesLoader(LoaderBase):
         # thus we ignore it and return everything we have always
         datastruct = {}
         if xident:
-            datastruct[xident[1]] = self._tables[xident[0]][xident[1]]
+            if xident[0] == DEFAULT_TIMESTAMP:
+                datastruct[DEFAULT_TIMESTAMP] = time.time()
+            elif xident[0] not in self._tables:
+                raise ValueError(f"failed to find '{xident[0]}' in networktables data")
+            else:
+                datastruct[xident[1]] = self._tables[xident[0]][xident[1]]
         for yident in yidents:
             datastruct[yident[1]] = self._tables[yident[0]][yident[1]]
         df = pd.DataFrame(datastruct,

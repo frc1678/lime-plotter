@@ -434,7 +434,8 @@ def create_subplots_from_yaml(yaml_file, default_x='timestamp',
             # look for missing names for better errors
             for token in plot_tokens:
                 if token not in subplot_keys:
-                    raise ValueError("CONFIGURATION ERROR: could not find plot '%s' in YAML file '%s'" % (token, yaml_file.name))
+                    error("CONFIGURATION ERROR: could not find plot '%s' in YAML file '%s'" % (token, yaml_file.name))
+                    exit(1)
                 
     return subplots
 
@@ -859,5 +860,9 @@ def main():
         info(f"Saved data to {save_data.name}")
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except ValueError as ve:
+        error(str(ve))
+        exit(1)
 
