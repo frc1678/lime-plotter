@@ -102,10 +102,10 @@ def parse_args():
     group.add_argument("-l", "--list-variables", action="store_true",
                        help="Just list the available variables in the passed files and exit")
 
-    parser.add_argument("--list-template", "--lt", action="store_true",
+    group.add_argument("--list-template", "--lt", action="store_true",
                         help="Similar to list-variables, but dump as a YAML example template")
 
-    parser.add_argument("--log-level", "--ll", default="info",
+    group.add_argument("--log-level", "--ll", default="info",
                         help="Define the logging verbosity level (debug, info, warning, error, fotal, critical).")
 
     # XXX currently broken:
